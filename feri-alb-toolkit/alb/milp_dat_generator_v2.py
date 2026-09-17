@@ -23,7 +23,7 @@ import networkx as nx
 # ─────────────────────────────────────────────────────────────
 
 _HERE      = Path(__file__).parent
-FERI_FILE  = _HERE / "FERI_results.xlsx"
+FERI_FILE  = _HERE.parent / "feri" / "FERI_results.xlsx"
 DAT_FILE   = _HERE / "assembly_line.dat"
 PREC_PNG   = _HERE / "precedence_diagram.png"
 
