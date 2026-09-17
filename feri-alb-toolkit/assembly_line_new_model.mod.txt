@@ -1,0 +1,298 @@
+/*********************************************
+ * OPL Model — Assembly Line Balancing Problem
+ *
+ * Two objective functions are defined. Activate the one you want by
+ * uncommenting its "minimize" line and commenting out the other.
+ *
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │  OBJ-1  MinMax                                                      │
+ * │  minimize  w_time * cycleTime + w_eri * maxEriLoad                  │
+ * │                                                                     │
+ * │  Minimises the weighted peak load across operators.                 │
+ * │  cycleTime  = max_s { sum_i time_task[i] * x[i][s] }               │
+ * │  maxEriLoad = max_s { sum_i eri[i]       * x[i][s] }               │
+ * ├─────────────────────────────────────────────────────────────────────┤
+ * │  OBJ-2  Dual Smoothness Index (SI)                                  │
+ * │  minimize  w_time * SI2_time + w_eri * SI2_eri                      │
+ * │                                                                     │
+ * │  Minimises workload imbalance across operators.                     │
+ * │  Standard SI formula:                                               │
+ * │    SI = sqrt( sum_s (C - T_s)^2 )                                   │
+ * │  where C = cycle time (max station load), T_s = station s load.    │
+ * │  The sqrt is dropped (same minimiser, valid convex MIQP):           │
+ * │    SI2_time = sum_s (cycleTime  - stationTime[s])^2                 │
+ * │    SI2_eri  = sum_s (maxEriLoad - stationEri[s] )^2                 │
+ * │                                                                     │
+ * │  REQUIRES upper-bound caps in the .dat file:                        │
+ * │    CT_max  — maximum allowed cycleTime  (prevents task stacking)    │
+ * │    ERI_max — maximum allowed maxEriLoad (prevents ERI stacking)     │
+ * │  Without these caps OBJ-2 degenerates: stacking all tasks on one   │
+ * │  operator trivially minimises the sum of squared deviations because │
+ * │  that operator's slack = 0 and idle operators have slack = C which  │
+ * │  is also minimised by making C as small as possible.                │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *
+ * NORMALIZATION: Performed upstream (fuzzy_eri.py + milp_dat_generator_v2.py)
+ *   time_task[i] = TN_m  (normalised fuzzy midpoint, in [0,1])
+ *   eri[i]       = ERI   (normalised crisp ERI,       in [0,1])
+ *
+ * NOTE: "Stations" = Operators (workers).
+ *       Physical workstations are a separate set (Workstations).
+ *********************************************/
+
+// ---------------------------------------------------------------------------
+// Data declarations
+// ---------------------------------------------------------------------------
+
+int n_tasks        = ...;
+int n_stations     = ...;    // number of operators
+int n_workstations = ...;    // number of physical workstations
+
+range Tasks        = 1..n_tasks;
+range Stations     = 1..n_stations;
+range Workstations = 1..n_workstations;
+
+// time_task[i] = TN_m, normalised midpoint of task i's fuzzy processing time
+float time_task[Tasks] = ...;
+// eri[i] = normalised crisp ERI value
+float eri[Tasks]       = ...;
+
+// taskWorkstation[i] = physical workstation that task i belongs to
+int taskWorkstation[Tasks] = ...;
+
+tuple Precedence {
+    int pred;
+    int succ;
+}
+{Precedence} precedence = ...;
+
+float w_time  = ...;  // objective weight for cycleTime  / SI_time  (0=ergonomics-only, 1=time-only)
+float w_eri   = ...;  // objective weight for maxEriLoad / SI_eri   (w_time + w_eri = 1.0)
+string scenario_tag = ...;  // run identifier echoed in output for result parsing
+int timeLimit = ...;  // CPLEX time limit in seconds
+
+// Upper-bound caps — used by OBJ-2 (Dual SI) to prevent task stacking.
+// A sensible default is:  CT_max  = totalTaskTime / n_stations  (ideal cycle time)
+//                         ERI_max = totalEri      / n_stations  (ideal ERI load)
+// or the OBJ-1 optimal values obtained from a first run.
+float CT_max  = ...;  // max allowed cycleTime  (C8 — active only for OBJ-2)
+float ERI_max = ...;  // max allowed maxEriLoad (C9 — active only for OBJ-2)
+
+// ---------------------------------------------------------------------------
+// CPLEX Settings
+// ---------------------------------------------------------------------------
+
+execute SETTINGS {
+    cplex.tilim = timeLimit;
+}
+
+// ---------------------------------------------------------------------------
+// Decision Variables
+// ---------------------------------------------------------------------------
+
+// x[i][s] = 1 if task i is assigned to operator s
+dvar boolean x[Tasks][Stations];
+
+// y[s][w] = 1 if operator s has at least one task in physical workstation w
+dvar boolean y[Stations][Workstations];
+
+// Boundary variables for workstation adjacency constraints (C6–C7)
+dvar int lastOp[Workstations];   // highest operator index assigned to workstation w
+dvar int firstOp[Workstations];  // lowest  operator index assigned to workstation w
+
+// Peak-load variables — also serve as C (reference) in the SI formula
+dvar float+ cycleTime;   // max stationTime[s] across all operators
+dvar float+ maxEriLoad;  // max stationEri[s]  across all operators
+
+// ---------------------------------------------------------------------------
+// Expressions
+// ---------------------------------------------------------------------------
+
+// Per-operator total time and ERI load (both in [0,1], pre-normalised)
+dexpr float stationTime[s in Stations] =
+    sum(i in Tasks) time_task[i] * x[i][s];
+
+dexpr float stationEri[s in Stations] =
+    sum(i in Tasks) eri[i] * x[i][s];
+
+// ---------------------------------------------------------------------------
+// OBJ-1: MinMax
+// Minimise the weighted maximum load across operators.
+// ---------------------------------------------------------------------------
+dexpr float obj_MaxLoad = w_time * cycleTime + w_eri * maxEriLoad;
+
+// ---------------------------------------------------------------------------
+// OBJ-2: Dual Smoothness Index
+//
+// SI_time = sqrt( sum_s (cycleTime  - stationTime[s])^2 )
+// SI_eri  = sqrt( sum_s (maxEriLoad - stationEri[s] )^2 )
+//
+// Squared form used in the objective (equivalent minimiser):
+//   SI2_time = sum_s (cycleTime  - stationTime[s])^2
+//   SI2_eri  = sum_s (maxEriLoad - stationEri[s] )^2
+//
+// Convexity note: C2/C3 force cycleTime = max stationTime and
+// maxEriLoad = max stationEri, so each slack is linear in x[i][s]
+// and the squared terms form a valid convex MIQP.
+// ---------------------------------------------------------------------------
+dexpr float SI2_time =
+    sum(s in Stations) (cycleTime  - stationTime[s])^2;
+
+dexpr float SI2_eri  =
+    sum(s in Stations) (maxEriLoad - stationEri[s] )^2;
+
+dexpr float obj_SI = w_time * SI2_time + w_eri * SI2_eri;
+
+// ===========================================================================
+// OBJECTIVE — uncomment the one you want, comment out the other
+// ===========================================================================
+
+// --- OBJ-1: MinMax (minimise peak load) ---
+//minimize obj_MaxLoad;
+
+// --- OBJ-2: Dual Smoothness Index (minimise workload imbalance) ---
+ minimize obj_SI;
+
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Constraints  (shared by both objectives)
+// ---------------------------------------------------------------------------
+
+subject to {
+
+    // C1: Each task assigned to exactly one operator
+    forall(i in Tasks)
+        assignOnce:
+        sum(s in Stations) x[i][s] == 1;
+
+    // C2: cycleTime >= every operator's time load
+    //     Forces cycleTime to equal the maximum stationTime (tight at optimum)
+    forall(s in Stations)
+        cycleTimeDef:
+        stationTime[s] <= cycleTime;
+
+    // C3: maxEriLoad >= every operator's ERI load
+    //     Forces maxEriLoad to equal the maximum stationEri (tight at optimum)
+    forall(s in Stations)
+        eriLoadDef:
+        stationEri[s] <= maxEriLoad;
+
+    // C4: Precedence — predecessor must be on an operator with index <= successor's
+    forall(p in precedence)
+        precedenceConstraint:
+        sum(s in Stations) s * x[p.pred][s] <=
+        sum(s in Stations) s * x[p.succ][s];
+
+    // C5a: Task i on operator s  =>  y[s][workstation(i)] = 1
+    forall(s in Stations, i in Tasks)
+        yLowerBound:
+        x[i][s] <= y[s][taskWorkstation[i]];
+
+    // C5b: y[s][w] = 1 only if at least one task from workstation w is on s
+    forall(s in Stations, w in Workstations)
+        yUpperBound:
+        y[s][w] <= sum(i in Tasks : taskWorkstation[i] == w) x[i][s];
+
+    // C6: Track highest and lowest operator index per workstation
+    forall(s in Stations, w in Workstations) {
+        lastOpDef:  lastOp[w]  >= s * y[s][w];
+        firstOpDef: firstOp[w] <= s + n_stations * (1 - y[s][w]);
+    }
+    forall(w in Workstations)
+        firstOpLB: firstOp[w] >= 1;
+
+    // C7: Strict workstation sequencing
+    //     lastOp[w] <= firstOp[w+1] guarantees no operator starts workstation
+    //     w+1 before all operators of workstation w have finished
+    forall(w in 1..n_workstations-1)
+        workstationSequencing:
+        lastOp[w] <= firstOp[w+1];
+
+    // C8: Cycle time upper bound — required by OBJ-2 (Dual SI) to prevent the
+    //     solver from stacking all tasks on one operator. Has no effect on OBJ-1
+    //     (which already minimises cycleTime directly).
+    cycleTimeUB:
+        cycleTime <= CT_max;
+
+    // C9: ERI load upper bound — same role as C8 for the ergonomic dimension.
+    eriLoadUB:
+        maxEriLoad <= ERI_max;
+}
+
+// ---------------------------------------------------------------------------
+// Post-processing: display results
+// ---------------------------------------------------------------------------
+
+execute DISPLAY_RESULTS {
+
+    // Compute true SI values (sqrt form) for reporting
+    var si2t = 0; var si2e = 0;
+    for (var s = 1; s <= n_stations; s++) {
+        var dt = cycleTime  - stationTime[s];
+        var de = maxEriLoad - stationEri[s];
+        si2t += dt * dt;
+        si2e += de * de;
+    }
+    var si_time = Math.sqrt(si2t);
+    var si_eri  = Math.sqrt(si2e);
+
+    writeln("=======================================================================");
+    writeln("ASSEMBLY LINE BALANCING — RESULTS");
+    writeln("=======================================================================");
+    writeln();
+    writeln("OBJECTIVE VALUES (both computed for comparison):");
+    writeln("  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = ",
+            w_time * cycleTime + w_eri * maxEriLoad);
+    writeln("          cycleTime  = ", cycleTime);
+    writeln("          maxEriLoad = ", maxEriLoad);
+    writeln();
+    writeln("  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = ",
+            w_time * SI2_time + w_eri * SI2_eri);
+    writeln("          SI_time = sqrt(SI2_time) = ", si_time,
+            "   SI2_time = ", SI2_time);
+    writeln("          SI_eri  = sqrt(SI2_eri)  = ", si_eri,
+            "   SI2_eri  = ", SI2_eri);
+    writeln();
+    writeln("  w_time = ", w_time, "   w_eri = ", w_eri);
+    writeln("  scenario_tag = ", scenario_tag);
+    writeln("  CT_max = ", CT_max, "   ERI_max = ", ERI_max, "  (caps active for OBJ-2)");
+    writeln();
+
+    writeln("OPERATOR ASSIGNMENTS:");
+    writeln("-----------------------------------------------------------------------");
+    var totalTime = 0;
+    for (var i = 1; i <= n_tasks; i++) totalTime += time_task[i];
+
+    for (var s = 1; s <= n_stations; s++) {
+        write("  Operator ", s, ": ");
+        var opTime = 0; var opEri = 0; var hasAny = false;
+        for (var w = 1; w <= n_workstations; w++) {
+            var here = ""; var first = true;
+            for (var i = 1; i <= n_tasks; i++) {
+                if (taskWorkstation[i] == w && x[i][s] == 1) {
+                    if (!first) here += ", ";
+                    here += i; first = false;
+                    opTime += time_task[i]; opEri += eri[i]; hasAny = true;
+                }
+            }
+            if (here != "") write("WS", w, "[", here, "] ");
+        }
+        if (!hasAny) write("(idle)");
+        writeln();
+        writeln("    TN_m = ", opTime,
+                "  idle = ", (cycleTime - opTime),
+                "  util% = ", (cycleTime > 0 ? opTime / cycleTime * 100 : 0));
+        writeln("    ERI  = ", opEri,
+                "  idle = ", (maxEriLoad - opEri));
+    }
+    writeln();
+
+    writeln("PERFORMANCE METRICS:");
+    writeln("-----------------------------------------------------------------------");
+    writeln("  Line Efficiency : ", (totalTime / (n_stations * cycleTime) * 100), "%");
+    writeln("  Total TN_m      : ", totalTime);
+    writeln("  SI_time         : ", si_time, "   (lower = more balanced time load)");
+    writeln("  SI_eri          : ", si_eri,  "   (lower = more balanced ERI load)");
+    writeln("=======================================================================");
+}

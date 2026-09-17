@@ -1,0 +1,936 @@
+<title>FERI Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#EFF1EE;
+    --surface:#FFFFFF;
+    --surface-2:#E6E8E3;
+    --border:#D6D8D2;
+    --text-primary:#14181A;
+    --text-secondary:#565C5E;
+    --text-muted:#868C8C;
+    --accent:#2a78d6;
+    --accent-soft:#e4eefb;
+    --accent2:#eb6834;
+    --accent2-soft:#fce8de;
+    --good:#0ca30c; --good-soft:#e2f5e0;
+    --warning:#c98500; --warning-soft:#fdf0d3;
+    --serious:#c85a34; --serious-soft:#fbe6dc;
+    --critical:#d03b3b; --critical-soft:#fae1e1;
+    --veryhigh:#7a1030; --veryhigh-soft:#f6dde5;
+    --grid:rgba(20,24,26,0.09);
+    --shadow: 0 1px 2px rgba(20,24,26,.06), 0 8px 20px -8px rgba(20,24,26,.12);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#14181B; --surface:#1B2024; --surface-2:#21272B; --border:#2C333A;
+      --text-primary:#EEF0EC; --text-secondary:#AAB1B3; --text-muted:#767D80;
+      --accent:#5b9ce8; --accent-soft:#1c2c3f;
+      --accent2:#f0865a; --accent2-soft:#3a2a20;
+      --good:#3fc23f; --good-soft:#132a13;
+      --warning:#e0a530; --warning-soft:#332a10;
+      --serious:#e08a63; --serious-soft:#332018;
+      --critical:#e66767; --critical-soft:#3a1a1a;
+      --veryhigh:#e388a8; --veryhigh-soft:#3a1a26;
+      --grid:rgba(255,255,255,0.08);
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#14181B; --surface:#1B2024; --surface-2:#21272B; --border:#2C333A;
+    --text-primary:#EEF0EC; --text-secondary:#AAB1B3; --text-muted:#767D80;
+    --accent:#5b9ce8; --accent-soft:#1c2c3f;
+    --accent2:#f0865a; --accent2-soft:#3a2a20;
+    --good:#3fc23f; --good-soft:#132a13;
+    --warning:#e0a530; --warning-soft:#332a10;
+    --serious:#e08a63; --serious-soft:#332018;
+    --critical:#e66767; --critical-soft:#3a1a1a;
+    --veryhigh:#e388a8; --veryhigh-soft:#3a1a26;
+    --grid:rgba(255,255,255,0.08);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text-primary);
+    font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  }
+  code{ font-family:"IBM Plex Mono", ui-monospace, monospace; background:var(--surface-2); padding:1px 5px; border-radius:4px; font-size:11px; }
+  .num{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  a{ color:var(--accent); }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding: 0 20px 64px; }
+
+  header.top{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    background:var(--bg); border-bottom:1px solid var(--border);
+    padding-top: calc(env(safe-area-inset-top,0px) + 18px);
+  }
+  .top-inner{ max-width:1180px; margin:0 auto; padding: 0 20px 16px; display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between;}
+  .brand{ display:flex; flex-direction:column; gap:4px; min-width:240px; }
+  .eyebrow{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; }
+  h1{ margin:0; font-size:26px; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  .sub{ margin:0; color:var(--text-secondary); font-size:13.5px; max-width:58ch; }
+  .search-box{ position:relative; }
+  .search-box input{
+    width: 260px; max-width: 60vw; padding:9px 12px 9px 34px; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text-primary);
+    font-family:inherit; font-size:13.5px;
+  }
+  .search-box input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .search-box svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-muted); }
+
+  main{ padding-top:24px; display:flex; flex-direction:column; gap:32px; }
+
+  /* Importer */
+  .importer{
+    display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow);
+  }
+  .importer .status{ font-size:12.5px; color:var(--text-secondary); flex:1 1 220px; min-width:200px; }
+  .importer .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-primary);
+    font-size:12.5px; font-weight:500; cursor:pointer; font-family:inherit; line-height:1.2;
+  }
+  .btn:hover{ filter:brightness(0.97); }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  input[type="file"]{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+  .import-hint{ width:100%; margin:0; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
+  .import-error{ width:100%; margin:0; font-size:12px; color:var(--critical); background:var(--critical-soft); padding:8px 10px; border-radius:8px; }
+
+  /* KPI strip */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .kpi{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; min-width:0;
+  }
+  .kpi .label{ font-size:11.5px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.06em; }
+  .kpi .value{ font-size:24px; font-weight:600; }
+  .kpi .value small{ font-size:13px; font-weight:500; color:var(--text-secondary); }
+  .kpi .mix{ display:flex; height:6px; border-radius:4px; overflow:hidden; margin-top:2px; }
+  .kpi .mix span{ display:block; height:100%; }
+  .kpi .foot{ font-size:11.5px; color:var(--text-muted); }
+
+  section{ display:flex; flex-direction:column; gap:14px; }
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .section-head h2{ margin:0; font-size:16px; font-weight:600; }
+  .section-head p{ margin:0; font-size:12.5px; color:var(--text-muted); }
+
+  .chart-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media (max-width:760px){ .chart-grid{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px 14px; box-shadow:var(--shadow); position:relative;
+  }
+  .card h3{ margin:0 0 2px; font-size:13.5px; font-weight:600; }
+  .card .cap{ margin:0 0 12px; font-size:11.5px; color:var(--text-muted); }
+  .card.wide{ grid-column: 1 / -1; }
+
+  svg.chart{ display:block; width:100%; height:auto; overflow:visible; }
+  .axis-label{ fill:var(--text-muted); font-size:9px; font-family:"IBM Plex Mono", monospace; }
+  .grid-line{ stroke:var(--grid); stroke-width:1; }
+  .bar-label{ fill:var(--text-secondary); font-size:9.5px; font-family:"IBM Plex Mono", monospace; }
+  .cat-label{ fill:var(--text-primary); font-size:10px; font-family:"IBM Plex Sans", sans-serif; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:10px; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-secondary); }
+  .legend-dot{ width:9px; height:9px; border-radius:2px; flex:none; }
+
+  .tooltip{
+    position:fixed; pointer-events:none; z-index:60; background:var(--text-primary); color:var(--bg);
+    font-size:11.5px; line-height:1.4; padding:7px 10px; border-radius:6px; box-shadow:var(--shadow);
+    max-width:240px; opacity:0; transform:translate(-50%,-100%); transition:opacity .08s ease;
+  }
+  .tooltip b{ font-weight:600; }
+  .tooltip.show{ opacity:1; }
+
+  /* Explorer */
+  .filters{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 14px; box-shadow:var(--shadow);
+  }
+  .filters select{
+    padding:7px 10px; border-radius:7px; border:1px solid var(--border); background:var(--surface-2);
+    color:var(--text-primary); font-family:inherit; font-size:12.5px;
+  }
+  .chip-group{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{
+    display:flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface-2);
+    padding:6px 11px; border-radius:999px; font-size:12px; cursor:pointer; user-select:none; color:var(--text-secondary);
+  }
+  .chip .dot{ width:8px; height:8px; border-radius:50%; }
+  .chip[aria-pressed="true"]{ background:var(--accent-soft); border-color:var(--accent); color:var(--text-primary); font-weight:500; }
+  .filters .count{ margin-left:auto; font-size:12px; color:var(--text-muted); }
+
+  .table-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .table-scroll{ overflow-x:auto; max-height: 620px; overflow-y:auto; }
+  table{ border-collapse:collapse; width:100%; min-width:820px; font-size:12.8px; }
+  thead th{
+    position:sticky; top:0; background:var(--surface-2); text-align:left; padding:9px 12px;
+    font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-secondary);
+    border-bottom:1px solid var(--border); cursor:pointer; white-space:nowrap; z-index:5;
+  }
+  thead th:hover{ color:var(--text-primary); }
+  thead th.sorted::after{ content:attr(data-arrow); margin-left:5px; color:var(--accent); }
+  tbody td{ padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:hover{ background:var(--surface-2); }
+  td.cat{ max-width:180px; }
+  .cat-tag{ display:inline-block; padding:3px 9px; border-radius:6px; background:var(--surface-2); color:var(--text-secondary); font-size:11.5px; font-weight:500; }
+  td.num{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+
+  .badge{
+    display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+    font-size:11px; font-weight:600; white-space:nowrap;
+  }
+  .badge .dot{ width:6px; height:6px; border-radius:50%; }
+  .badge.Low{ background:var(--good-soft); color:var(--good); }
+  .badge.Moderate{ background:var(--warning-soft); color:var(--warning); }
+  .badge.Medium{ background:var(--serious-soft); color:var(--serious); }
+  .badge.High{ background:var(--critical-soft); color:var(--critical); }
+  .badge.VeryHigh{ background:var(--veryhigh-soft); color:var(--veryhigh); }
+
+  .eri-track{ position:relative; width:96px; height:14px; background:var(--surface-2); border-radius:4px; }
+  .eri-fill{ position:absolute; top:3px; bottom:3px; background:var(--border); border-radius:3px; }
+  .eri-mark{ position:absolute; top:1px; width:2px; height:12px; border-radius:1px; }
+  .eri-wrap{ display:flex; align-items:center; gap:8px; }
+  .eri-val{ font-family:"IBM Plex Mono", monospace; font-size:12px; width:40px; text-align:right; }
+
+  footer{ margin-top:8px; font-size:11.5px; color:var(--text-muted); text-align:center; }
+  footer a{ color:var(--text-muted); text-decoration:underline; }
+
+  @media (max-width:520px){
+    h1{ font-size:21px; }
+    .search-box input{ width:100%; }
+  }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <h1>Fuzzy Ergonomic Risk Index (FERI)</h1>
+      <p class="sub">An open tool for exploring assembly-task ergonomics with the Fuzzy Ergonomic Risk Index (FERI): energy expenditure, REBA and Borg CR&#8209;10 per task, with fuzzy risk computed. Shown here with a sample industrial dataset &mdash; import your own workbook below to analyze a different study.</p>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="search" type="text" placeholder="Search category, ID or station…" autocomplete="off">
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+
+  <section id="importer">
+    <div class="importer">
+      <span class="status" id="datasetStatus">A carregar…</span>
+      <div class="actions">
+        <button class="btn" id="downloadTemplate" type="button" disabled>Baixar modelo Excel (.xlsx)</button>
+        <label class="btn primary" for="fileInput">Importar Excel (.xlsx)</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls">
+        <button class="btn" id="resetSample" type="button">Repor exemplo</button>
+      </div>
+      <p class="import-error" id="importError" hidden></p>
+    </div>
+  </section>
+
+  <section id="kpis">
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <section id="analytics">
+    <div class="section-head">
+      <h2>Dataset analytics</h2>
+      <p id="analyticsSub">Computed over all tasks</p>
+    </div>
+    <div class="chart-grid">
+
+      <div class="card">
+        <h3>Risk level mix</h3>
+        <p class="cap">Task count per FERI risk band</p>
+        <svg class="chart" id="chartRisk" viewBox="0 0 460 210" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="card">
+        <h3>Energy vs. processing time</h3>
+        <p class="cap">Each dot is one task, coloured by risk band</p>
+        <svg class="chart" id="chartScatter" viewBox="0 0 460 190" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="legend" id="scatterLegend"></div>
+      </div>
+
+      <div class="card">
+        <h3>REBA score distribution</h3>
+        <p class="cap">Postural risk, nominal scale 1 (negligible) to 15 (very high)</p>
+        <svg class="chart" id="chartReba" viewBox="0 0 460 150" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="card">
+        <h3>Borg CR&#8209;10 distribution</h3>
+        <p class="cap">Perceived exertion, nominal scale 0 (nothing) to 10 (maximal)</p>
+        <svg class="chart" id="chartBorg" viewBox="0 0 460 150" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="card wide">
+        <h3>Station load &mdash; time vs. ergonomic risk</h3>
+        <p class="cap" id="stationCaption">Total processing time and mean FERI per station, same order for comparison</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;" id="stationCharts"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="explorer">
+    <div class="section-head">
+      <h2 id="explorerTitle">All tasks</h2>
+      <p>Click a column to sort</p>
+    </div>
+
+    <div class="filters">
+      <select id="stationFilter"><option value="">All stations</option></select>
+      <div class="chip-group" id="riskChips"></div>
+      <span class="count" id="rowCount"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th data-key="id">ID</th>
+              <th data-key="st">Station</th>
+              <th data-key="cat">Category</th>
+              <th data-key="t">Time (s)</th>
+              <th data-key="en">Energy (kcal)</th>
+              <th data-key="reba">REBA</th>
+              <th data-key="borg">Borg</th>
+              <th data-key="eri">FERI (l&ndash;m&ndash;u)</th>
+              <th data-key="risk">Risk</th>
+            </tr>
+          </thead>
+          <tbody id="taskBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>FERI pipeline: per-criterion max&#8209;normalisation &rarr; AHP&#8209;weighted fuzzy aggregation &rarr; &alpha;&#8209;cut-ready fuzzy risk. Download the template above to analyze your own task set in the same format.</footer>
+
+</main>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var CATEGORY_LIST = ["Aperto","Cablagem","Embalagem","Etiquetagem","Manuseamento","Montagem","Preparação","Teste"];
+
+  var SAMPLE_TASKS = [{"id":1,"st":1,"t":185.9,"en":4.889,"reba":4,"borg":5,"el":0.5501,"em":0.6409,"eu":0.7317,"eri":0.6409,"risk":"High","cat":"Manuseamento"},{"id":2,"st":1,"t":6.1,"en":0.08,"reba":1,"borg":1,"el":0.005,"em":0.0801,"eu":0.1551,"eri":0.0801,"risk":"Low","cat":"Preparação"},{"id":3,"st":1,"t":60.0,"en":1.578,"reba":4,"borg":5,"el":0.3444,"em":0.4244,"eu":0.5043,"eri":0.4244,"risk":"Medium","cat":"Montagem"},{"id":4,"st":1,"t":48.3,"en":0.632,"reba":2,"borg":2,"el":0.1141,"em":0.191,"eu":0.2678,"eri":0.191,"risk":"Low","cat":"Etiquetagem"},{"id":5,"st":1,"t":50.0,"en":1.316,"reba":1,"borg":1,"el":0.0818,"em":0.1609,"eu":0.24,"eri":0.1609,"risk":"Low","cat":"Manuseamento"},{"id":6,"st":10,"t":33.5,"en":0.915,"reba":1,"borg":1,"el":0.0568,"em":0.1346,"eu":0.2124,"eri":0.1346,"risk":"Low","cat":"Etiquetagem"},{"id":7,"st":50,"t":37.4,"en":0.737,"reba":4,"borg":3,"el":0.2483,"em":0.3255,"eu":0.4027,"eri":0.3255,"risk":"Moderate","cat":"Montagem"},{"id":8,"st":50,"t":33.3,"en":0.087,"reba":1,"borg":3,"el":0.0493,"em":0.1244,"eu":0.1995,"eri":0.1244,"risk":"Low","cat":"Teste"},{"id":9,"st":50,"t":21.2,"en":0.593,"reba":3,"borg":3,"el":0.1864,"em":0.2632,"eu":0.3399,"eri":0.2632,"risk":"Moderate","cat":"Montagem"},{"id":10,"st":100,"t":33.8,"en":0.234,"reba":1,"borg":2,"el":0.0365,"em":0.112,"eu":0.1876,"eri":0.112,"risk":"Low","cat":"Teste"},{"id":11,"st":100,"t":28.0,"en":0.336,"reba":3,"borg":1,"el":0.1266,"em":0.2025,"eu":0.2785,"eri":0.2025,"risk":"Moderate","cat":"Teste"},{"id":12,"st":100,"t":7.2,"en":0.22,"reba":1,"borg":2,"el":0.0356,"em":0.1111,"eu":0.1867,"eri":0.1111,"risk":"Low","cat":"Teste"},{"id":13,"st":130,"t":40.6,"en":0.618,"reba":4,"borg":6,"el":0.3067,"em":0.3835,"eu":0.4604,"eri":0.3835,"risk":"Moderate","cat":"Montagem"},{"id":14,"st":130,"t":36.4,"en":0.547,"reba":4,"borg":6,"el":0.3023,"em":0.3789,"eu":0.4555,"eri":0.3789,"risk":"Moderate","cat":"Montagem"},{"id":15,"st":130,"t":24.2,"en":0.547,"reba":4,"borg":6,"el":0.3023,"em":0.3789,"eu":0.4555,"eri":0.3789,"risk":"Moderate","cat":"Montagem"},{"id":16,"st":130,"t":44.7,"en":0.679,"reba":4,"borg":6,"el":0.3105,"em":0.3875,"eu":0.4645,"eri":0.3875,"risk":"Moderate","cat":"Montagem"},{"id":17,"st":130,"t":39.6,"en":1.165,"reba":1,"borg":2,"el":0.0943,"em":0.1729,"eu":0.2516,"eri":0.1729,"risk":"Low","cat":"Montagem"},{"id":18,"st":130,"t":23.3,"en":0.287,"reba":1,"borg":1,"el":0.0178,"em":0.0936,"eu":0.1693,"eri":0.0936,"risk":"Low","cat":"Teste"},{"id":19,"st":140,"t":24.7,"en":0.404,"reba":1,"borg":3,"el":0.069,"em":0.1451,"eu":0.2213,"eri":0.1451,"risk":"Low","cat":"Aperto"},{"id":20,"st":140,"t":25.1,"en":0.504,"reba":1,"borg":3,"el":0.0752,"em":0.1516,"eu":0.2281,"eri":0.1516,"risk":"Low","cat":"Aperto"},{"id":21,"st":140,"t":22.5,"en":0.336,"reba":1,"borg":2,"el":0.0428,"em":0.1187,"eu":0.1946,"eri":0.1187,"risk":"Low","cat":"Montagem"},{"id":22,"st":140,"t":5.9,"en":0.217,"reba":3,"borg":4,"el":0.185,"em":0.2606,"eu":0.3361,"eri":0.2606,"risk":"Moderate","cat":"Preparação"},{"id":23,"st":140,"t":27.8,"en":0.642,"reba":3,"borg":4,"el":0.2114,"em":0.2883,"eu":0.3653,"eri":0.2883,"risk":"Moderate","cat":"Preparação"},{"id":24,"st":140,"t":19.1,"en":0.711,"reba":3,"borg":6,"el":0.2596,"em":0.3368,"eu":0.4139,"eri":0.3368,"risk":"Moderate","cat":"Montagem"},{"id":25,"st":140,"t":64.3,"en":0.76,"reba":3,"borg":6,"el":0.2627,"em":0.34,"eu":0.4173,"eri":0.34,"risk":"Moderate","cat":"Aperto"},{"id":26,"st":150,"t":8.3,"en":0.343,"reba":2,"borg":4,"el":0.14,"em":0.2159,"eu":0.2918,"eri":0.2159,"risk":"Moderate","cat":"Manuseamento"},{"id":27,"st":150,"t":7.2,"en":0.218,"reba":1,"borg":2,"el":0.0355,"em":0.111,"eu":0.1865,"eri":0.111,"risk":"Low","cat":"Montagem"},{"id":28,"st":150,"t":15.9,"en":0.369,"reba":1,"borg":2,"el":0.0449,"em":0.1209,"eu":0.1969,"eri":0.1209,"risk":"Low","cat":"Manuseamento"},{"id":29,"st":150,"t":9.0,"en":0.293,"reba":3,"borg":5,"el":0.2117,"em":0.2875,"eu":0.3632,"eri":0.2875,"risk":"Moderate","cat":"Montagem"},{"id":30,"st":150,"t":32.8,"en":0.836,"reba":2,"borg":2,"el":0.1268,"em":0.2043,"eu":0.2819,"eri":0.2043,"risk":"Moderate","cat":"Aperto"},{"id":31,"st":150,"t":6.0,"en":0.137,"reba":2,"borg":1,"el":0.0614,"em":0.1367,"eu":0.2119,"eri":0.1367,"risk":"Low","cat":"Aperto"},{"id":32,"st":150,"t":7.0,"en":0.254,"reba":1,"borg":1,"el":0.0158,"em":0.0914,"eu":0.1671,"eri":0.0914,"risk":"Low","cat":"Aperto"},{"id":33,"st":150,"t":14.2,"en":0.392,"reba":1,"borg":2,"el":0.0463,"em":0.1224,"eu":0.1985,"eri":0.1224,"risk":"Low","cat":"Cablagem"},{"id":34,"st":150,"t":5.0,"en":0.079,"reba":1,"borg":7,"el":0.1366,"em":0.2116,"eu":0.2867,"eri":0.2116,"risk":"Moderate","cat":"Cablagem"},{"id":35,"st":150,"t":19.4,"en":0.44,"reba":1,"borg":5,"el":0.1151,"em":0.1913,"eu":0.2676,"eri":0.1913,"risk":"Low","cat":"Cablagem"},{"id":36,"st":150,"t":13.0,"en":0.415,"reba":1,"borg":7,"el":0.1574,"em":0.2336,"eu":0.3098,"eri":0.2336,"risk":"Moderate","cat":"Cablagem"},{"id":37,"st":150,"t":18.0,"en":0.484,"reba":1,"borg":5,"el":0.1178,"em":0.1942,"eu":0.2706,"eri":0.1942,"risk":"Low","cat":"Cablagem"},{"id":38,"st":150,"t":18.9,"en":0.329,"reba":1,"borg":4,"el":0.0863,"em":0.1622,"eu":0.238,"eri":0.1622,"risk":"Low","cat":"Cablagem"},{"id":39,"st":150,"t":30.8,"en":0.664,"reba":1,"borg":4,"el":0.1071,"em":0.1841,"eu":0.261,"eri":0.1841,"risk":"Low","cat":"Cablagem"},{"id":40,"st":150,"t":20.9,"en":0.606,"reba":1,"borg":2,"el":0.0596,"em":0.1364,"eu":0.2132,"eri":0.1364,"risk":"Low","cat":"Manuseamento"},{"id":41,"st":190,"t":9.0,"en":0.294,"reba":1,"borg":2,"el":0.0402,"em":0.116,"eu":0.1917,"eri":0.116,"risk":"Low","cat":"Teste"},{"id":42,"st":190,"t":18.0,"en":0.43,"reba":2,"borg":7,"el":0.2112,"em":0.2875,"eu":0.3637,"eri":0.2875,"risk":"Moderate","cat":"Teste"},{"id":43,"st":190,"t":63.4,"en":0.614,"reba":1,"borg":1,"el":0.0381,"em":0.115,"eu":0.1918,"eri":0.115,"risk":"Low","cat":"Teste"},{"id":44,"st":190,"t":13.5,"en":0.378,"reba":1,"borg":5,"el":0.1112,"em":0.1873,"eu":0.2633,"eri":0.1873,"risk":"Low","cat":"Teste"},{"id":45,"st":190,"t":14.4,"en":0.457,"reba":1,"borg":1,"el":0.0284,"em":0.1047,"eu":0.181,"eri":0.1047,"risk":"Low","cat":"Montagem"},{"id":46,"st":210,"t":7.2,"en":0.187,"reba":1,"borg":1,"el":0.0116,"em":0.0871,"eu":0.1625,"eri":0.0871,"risk":"Low","cat":"Montagem"},{"id":47,"st":210,"t":3.6,"en":0.115,"reba":1,"borg":1,"el":0.0072,"em":0.0823,"eu":0.1575,"eri":0.0823,"risk":"Low","cat":"Etiquetagem"},{"id":48,"st":211,"t":31.1,"en":0.553,"reba":1,"borg":2,"el":0.0563,"em":0.1329,"eu":0.2095,"eri":0.1329,"risk":"Low","cat":"Montagem"},{"id":49,"st":210,"t":84.8,"en":1.438,"reba":7,"borg":7,"el":0.5382,"em":0.6177,"eu":0.6972,"eri":0.6177,"risk":"High","cat":"Manuseamento"},{"id":50,"st":210,"t":19.6,"en":0.616,"reba":1,"borg":1,"el":0.0383,"em":0.1151,"eu":0.1919,"eri":0.1151,"risk":"Low","cat":"Etiquetagem"},{"id":51,"st":210,"t":14.0,"en":0.493,"reba":1,"borg":2,"el":0.0526,"em":0.129,"eu":0.2054,"eri":0.129,"risk":"Low","cat":"Montagem"},{"id":52,"st":210,"t":30.1,"en":0.358,"reba":3,"borg":4,"el":0.1938,"em":0.2698,"eu":0.3458,"eri":0.2698,"risk":"Moderate","cat":"Aperto"},{"id":53,"st":210,"t":17.8,"en":0.568,"reba":2,"borg":1,"el":0.0881,"em":0.1648,"eu":0.2415,"eri":0.1648,"risk":"Low","cat":"Montagem"},{"id":54,"st":215,"t":28.0,"en":0.775,"reba":1,"borg":2,"el":0.0701,"em":0.1475,"eu":0.2248,"eri":0.1475,"risk":"Low","cat":"Preparação"},{"id":55,"st":215,"t":28.9,"en":0.695,"reba":1,"borg":2,"el":0.0651,"em":0.1422,"eu":0.2193,"eri":0.1422,"risk":"Low","cat":"Teste"},{"id":56,"st":210,"t":36.4,"en":1.076,"reba":1,"borg":1,"el":0.0669,"em":0.1452,"eu":0.2235,"eri":0.1452,"risk":"Low","cat":"Teste"},{"id":57,"st":240,"t":24.5,"en":0.75,"reba":1,"borg":5,"el":0.1343,"em":0.2116,"eu":0.2889,"eri":0.2116,"risk":"Moderate","cat":"Teste"},{"id":58,"st":240,"t":31.5,"en":0.953,"reba":1,"borg":3,"el":0.1031,"em":0.181,"eu":0.2589,"eri":0.181,"risk":"Low","cat":"Teste"},{"id":59,"st":240,"t":21.2,"en":0.637,"reba":1,"borg":3,"el":0.0835,"em":0.1603,"eu":0.2372,"eri":0.1603,"risk":"Low","cat":"Teste"},{"id":60,"st":270,"t":7.9,"en":0.233,"reba":2,"borg":1,"el":0.0673,"em":0.1429,"eu":0.2185,"eri":0.1429,"risk":"Low","cat":"Montagem"},{"id":61,"st":270,"t":37.3,"en":0.962,"reba":1,"borg":1,"el":0.0598,"em":0.1378,"eu":0.2157,"eri":0.1378,"risk":"Low","cat":"Montagem"},{"id":62,"st":270,"t":43.1,"en":0.897,"reba":1,"borg":1,"el":0.0557,"em":0.1335,"eu":0.2112,"eri":0.1335,"risk":"Low","cat":"Montagem"},{"id":63,"st":270,"t":9.9,"en":0.275,"reba":1,"borg":3,"el":0.0609,"em":0.1367,"eu":0.2124,"eri":0.1367,"risk":"Low","cat":"Montagem"},{"id":64,"st":270,"t":9.9,"en":0.275,"reba":1,"borg":3,"el":0.0609,"em":0.1367,"eu":0.2124,"eri":0.1367,"risk":"Low","cat":"Montagem"},{"id":65,"st":270,"t":13.1,"en":0.275,"reba":1,"borg":3,"el":0.0609,"em":0.1367,"eu":0.2124,"eri":0.1367,"risk":"Low","cat":"Montagem"},{"id":66,"st":270,"t":38.6,"en":1.016,"reba":2,"borg":1,"el":0.116,"em":0.1941,"eu":0.2723,"eri":0.1941,"risk":"Low","cat":"Montagem"},{"id":67,"st":270,"t":51.3,"en":1.499,"reba":4,"borg":10,"el":0.4492,"em":0.5289,"eu":0.6086,"eri":0.5289,"risk":"Medium","cat":"Montagem"},{"id":68,"st":270,"t":28.3,"en":0.812,"reba":4,"borg":10,"el":0.4065,"em":0.484,"eu":0.5614,"eri":0.484,"risk":"Medium","cat":"Montagem"},{"id":69,"st":270,"t":48.2,"en":1.223,"reba":1,"borg":2,"el":0.0979,"em":0.1768,"eu":0.2556,"eri":0.1768,"risk":"Low","cat":"Preparação"},{"id":70,"st":270,"t":39.7,"en":0.76,"reba":3,"borg":3,"el":0.1968,"em":0.2741,"eu":0.3514,"eri":0.2741,"risk":"Moderate","cat":"Aperto"},{"id":71,"st":290,"t":37.0,"en":0.616,"reba":2,"borg":3,"el":0.135,"em":0.2118,"eu":0.2886,"eri":0.2118,"risk":"Moderate","cat":"Aperto"},{"id":72,"st":290,"t":23.3,"en":0.287,"reba":1,"borg":1,"el":0.0178,"em":0.0936,"eu":0.1693,"eri":0.0936,"risk":"Low","cat":"Manuseamento"},{"id":73,"st":311,"t":36.4,"en":1.382,"reba":4,"borg":10,"el":0.442,"em":0.5213,"eu":0.6006,"eri":0.5213,"risk":"Medium","cat":"Preparação"},{"id":74,"st":311,"t":35.9,"en":1.081,"reba":3,"borg":10,"el":0.3704,"em":0.4487,"eu":0.5271,"eri":0.4487,"risk":"Medium","cat":"Preparação"},{"id":75,"st":310,"t":20.0,"en":0.659,"reba":3,"borg":2,"el":0.1686,"em":0.2456,"eu":0.3225,"eri":0.2456,"risk":"Moderate","cat":"Montagem"},{"id":76,"st":310,"t":36.6,"en":1.095,"reba":2,"borg":2,"el":0.1428,"em":0.2212,"eu":0.2996,"eri":0.2212,"risk":"Moderate","cat":"Montagem"},{"id":77,"st":330,"t":19.1,"en":0.635,"reba":1,"borg":2,"el":0.0614,"em":0.1383,"eu":0.2152,"eri":0.1383,"risk":"Low","cat":"Embalagem"},{"id":78,"st":331,"t":38.0,"en":1.357,"reba":1,"borg":2,"el":0.1062,"em":0.1855,"eu":0.2647,"eri":0.1855,"risk":"Low","cat":"Embalagem"},{"id":79,"st":331,"t":35.3,"en":0.763,"reba":1,"borg":2,"el":0.0693,"em":0.1466,"eu":0.2239,"eri":0.1466,"risk":"Low","cat":"Embalagem"},{"id":80,"st":330,"t":9.4,"en":0.435,"reba":1,"borg":2,"el":0.0489,"em":0.1252,"eu":0.2014,"eri":0.1252,"risk":"Low","cat":"Embalagem"},{"id":81,"st":330,"t":18.7,"en":0.755,"reba":1,"borg":2,"el":0.0688,"em":0.1461,"eu":0.2234,"eri":0.1461,"risk":"Low","cat":"Embalagem"},{"id":82,"st":330,"t":18.7,"en":0.755,"reba":1,"borg":2,"el":0.0688,"em":0.1461,"eu":0.2234,"eri":0.1461,"risk":"Low","cat":"Embalagem"},{"id":83,"st":330,"t":22.3,"en":0.87,"reba":1,"borg":2,"el":0.076,"em":0.1536,"eu":0.2313,"eri":0.1536,"risk":"Low","cat":"Embalagem"},{"id":84,"st":332,"t":33.4,"en":0.732,"reba":2,"borg":3,"el":0.1422,"em":0.2194,"eu":0.2966,"eri":0.2194,"risk":"Moderate","cat":"Embalagem"},{"id":85,"st":332,"t":22.4,"en":0.547,"reba":2,"borg":3,"el":0.1308,"em":0.2074,"eu":0.284,"eri":0.2074,"risk":"Moderate","cat":"Embalagem"},{"id":86,"st":332,"t":25.3,"en":0.616,"reba":2,"borg":3,"el":0.135,"em":0.2119,"eu":0.2887,"eri":0.2119,"risk":"Moderate","cat":"Embalagem"},{"id":87,"st":330,"t":43.7,"en":1.71,"reba":2,"borg":3,"el":0.203,"em":0.2834,"eu":0.3638,"eri":0.2834,"risk":"Moderate","cat":"Embalagem"},{"id":88,"st":350,"t":25.0,"en":0.733,"reba":1,"borg":2,"el":0.0675,"em":0.1447,"eu":0.2219,"eri":0.1447,"risk":"Low","cat":"Embalagem"},{"id":89,"st":350,"t":37.1,"en":1.122,"reba":1,"borg":2,"el":0.0917,"em":0.1701,"eu":0.2486,"eri":0.1701,"risk":"Low","cat":"Embalagem"},{"id":90,"st":350,"t":18.8,"en":0.559,"reba":2,"borg":6,"el":0.1973,"em":0.2739,"eu":0.3505,"eri":0.2739,"risk":"Moderate","cat":"Etiquetagem"},{"id":91,"st":390,"t":59.8,"en":0.415,"reba":2,"borg":7,"el":0.2103,"em":0.2864,"eu":0.3626,"eri":0.2864,"risk":"Moderate","cat":"Manuseamento"},{"id":92,"st":390,"t":15.6,"en":0.633,"reba":3,"borg":9,"el":0.3206,"em":0.3974,"eu":0.4743,"eri":0.3974,"risk":"Moderate","cat":"Manuseamento"},{"id":93,"st":390,"t":16.4,"en":0.431,"reba":5,"borg":9,"el":0.4138,"em":0.49,"eu":0.5662,"eri":0.49,"risk":"Medium","cat":"Embalagem"},{"id":94,"st":390,"t":24.8,"en":0.803,"reba":4,"borg":8,"el":0.3621,"em":0.4395,"eu":0.517,"eri":0.4395,"risk":"Medium","cat":"Manuseamento"},{"id":95,"st":390,"t":27.0,"en":1.295,"reba":4,"borg":8,"el":0.3926,"em":0.4717,"eu":0.5507,"eri":0.4717,"risk":"Medium","cat":"Manuseamento"},{"id":96,"st":390,"t":25.5,"en":0.735,"reba":1,"borg":2,"el":0.0676,"em":0.1448,"eu":0.222,"eri":0.1448,"risk":"Low","cat":"Etiquetagem"},{"id":97,"st":390,"t":28.7,"en":0.929,"reba":1,"borg":2,"el":0.0797,"em":0.1575,"eu":0.2353,"eri":0.1575,"risk":"Low","cat":"Etiquetagem"}];
+
+  var TASKS = SAMPLE_TASKS.slice();
+
+  var RISK_ORDER = ["Low","Moderate","Medium","High","Very High"];
+  var RISK_KEY = { Low:"good", Moderate:"warning", Medium:"serious", High:"critical", "Very High":"veryhigh" };
+  var ELEVATED = ["Medium","High","Very High"];
+
+  var cssVar = function(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  };
+  var riskColor = function(r){ return cssVar("--" + (RISK_KEY[r] || "good")); };
+  var riskSlug = function(r){ return String(r).replace(/\s+/g, ""); };
+  var freshRisksState = function(){ var o = {}; RISK_ORDER.forEach(function(r){ o[r] = true; }); return o; };
+  var classifyRisk = function(eri){
+    if (eri < 0.2) return "Low";
+    if (eri < 0.4) return "Moderate";
+    if (eri < 0.6) return "Medium";
+    if (eri < 0.8) return "High";
+    return "Very High";
+  };
+  var cmpGeneric = function(a, b){
+    var an = parseFloat(a), bn = parseFloat(b);
+    if (!isNaN(an) && !isNaN(bn)) return an - bn;
+    return String(a).localeCompare(String(b));
+  };
+  var normalizeKey = function(s){
+    return String(s == null ? "" : s).trim().toLowerCase()
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  };
+
+  var tooltip = document.getElementById("tooltip");
+  function showTip(x, y, html){
+    tooltip.innerHTML = html;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = (y - 10) + "px";
+    tooltip.classList.add("show");
+  }
+  function hideTip(){ tooltip.classList.remove("show"); }
+
+  var svgns = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){
+    var n = document.createElementNS(svgns, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  // ---------- Import / parsing ----------
+  var ALIASES = {
+    id:   ["Task ID","ID","Tarefa ID","ID Tarefa"],
+    st:   ["Station","Posto"],
+    cat:  ["Category","Categoria","Cat","Task Type","Tipo de Tarefa"],
+    t:    ["Time (s)","Time","Tempo (s)","Tempo"],
+    en:   ["Energy (kcal)","Energy","Energia (kcal)","Energia"],
+    reba: ["REBA"],
+    borg: ["Borg","BORG"],
+    el:   ["ERI_l","ERI_L","ERI l"],
+    em:   ["ERI_m","ERI_M","ERI m"],
+    eu:   ["ERI_u","ERI_U","ERI u"],
+    eri:  ["ERI (crisp)","ERI crisp","ERI","FERI"],
+    risk: ["Risk Level","Risk","Nivel de Risco","Nível de Risco","Risco"]
+  };
+  var REQUIRED_LABELS = { id:"Task ID", st:"Station", t:"Time (s)", en:"Energy (kcal)", reba:"REBA", borg:"Borg" };
+
+  function findColumn(normMap, field){
+    var candidates = ALIASES[field] || [];
+    for (var i = 0; i < candidates.length; i++){
+      var key = normalizeKey(candidates[i]);
+      if (normMap.hasOwnProperty(key)) return normMap[key];
+    }
+    return null;
+  }
+
+  function parseSheet(rows){
+    if (!rows || !rows.length){
+      return { tasks: [], errors: ["A folha está vazia ou não foi possível ler nenhuma linha."] };
+    }
+    var normMap = {};
+    Object.keys(rows[0]).forEach(function(h){ normMap[normalizeKey(h)] = h; });
+
+    var colFor = {};
+    Object.keys(ALIASES).forEach(function(field){ colFor[field] = findColumn(normMap, field); });
+
+    var missing = Object.keys(REQUIRED_LABELS).filter(function(f){ return !colFor[f]; });
+    if (missing.length){
+      return { tasks: [], errors: ["Faltam colunas obrigatórias: " + missing.map(function(f){ return REQUIRED_LABELS[f]; }).join(", ") + "."] };
+    }
+    var hasEriCols = !!(colFor.eri || (colFor.el && colFor.em && colFor.eu));
+
+    var base = [];
+    rows.forEach(function(row, idx){
+      var t = parseFloat(row[colFor.t]);
+      var en = parseFloat(row[colFor.en]);
+      var reba = parseFloat(row[colFor.reba]);
+      var borg = parseFloat(row[colFor.borg]);
+      if (isNaN(t) || isNaN(en) || isNaN(reba) || isNaN(borg)) return;
+
+      var idRaw = row[colFor.id];
+      var stRaw = row[colFor.st];
+      var catRaw = colFor.cat ? row[colFor.cat] : null;
+      base.push({
+        id: (idRaw != null && idRaw !== "") ? idRaw : (idx + 1),
+        st: (stRaw != null && stRaw !== "") ? stRaw : "—",
+        cat: (catRaw != null && String(catRaw).trim() !== "") ? String(catRaw).trim() : "—",
+        t: t, en: en, reba: reba, borg: borg,
+        _row: row
+      });
+    });
+    if (!base.length){
+      return { tasks: [], errors: ["Nenhuma linha com dados numéricos válidos foi encontrada."] };
+    }
+
+    if (hasEriCols){
+      base.forEach(function(r){
+        var row = r._row;
+        var eriV = colFor.eri ? parseFloat(row[colFor.eri]) : NaN;
+        var elV = colFor.el ? parseFloat(row[colFor.el]) : NaN;
+        var emV = colFor.em ? parseFloat(row[colFor.em]) : NaN;
+        var euV = colFor.eu ? parseFloat(row[colFor.eu]) : NaN;
+        if (isNaN(eriV) && !isNaN(elV) && !isNaN(emV) && !isNaN(euV)) eriV = (elV + emV + euV) / 3;
+        if (isNaN(elV)) elV = eriV;
+        if (isNaN(euV)) euV = eriV;
+        if (isNaN(emV)) emV = eriV;
+        r.el = elV; r.em = emV; r.eu = euV; r.eri = eriV;
+      });
+      base = base.filter(function(r){ return !isNaN(r.eri); });
+      if (!base.length){
+        return { tasks: [], errors: ["As colunas de ERI existem mas não têm valores numéricos válidos."] };
+      }
+    } else {
+      computeFeriForRows(base);
+    }
+
+    base.forEach(function(r){
+      var row = r._row;
+      var riskRaw = colFor.risk ? String(row[colFor.risk] == null ? "" : row[colFor.risk]).trim() : "";
+      r.risk = RISK_ORDER.indexOf(riskRaw) >= 0 ? riskRaw : classifyRisk(r.eri);
+      delete r._row;
+    });
+
+    return { tasks: base, errors: [] };
+  }
+
+  // ---------- FERI computation (mirrors fuzzy_eri.py) ----------
+  var AHP_WEIGHTS = { energy: 0.335706, reba: 0.422963, borg: 0.241330 };
+  var FERI_SPREAD = { energy: 0.05, reba: 1, borg: 1 };
+  function computeFeriForRows(rows){
+    var bounds = rows.map(function(r){
+      return {
+        e_l: r.en * (1 - FERI_SPREAD.energy), e_u: r.en * (1 + FERI_SPREAD.energy),
+        r_l: Math.max(r.reba - FERI_SPREAD.reba, 0), r_u: r.reba + FERI_SPREAD.reba,
+        b_l: Math.max(r.borg - FERI_SPREAD.borg, 0), b_u: r.borg + FERI_SPREAD.borg
+      };
+    });
+    var maxE = Math.max.apply(null, bounds.map(function(w){return w.e_u;}).concat([0.0001]));
+    var maxR = Math.max.apply(null, bounds.map(function(w){return w.r_u;}).concat([0.0001]));
+    var maxB = Math.max.apply(null, bounds.map(function(w){return w.b_u;}).concat([0.0001]));
+    rows.forEach(function(r, i){
+      var w = bounds[i];
+      var enL = w.e_l/maxE, enM = r.en/maxE, enU = w.e_u/maxE;
+      var rnL = w.r_l/maxR, rnM = r.reba/maxR, rnU = w.r_u/maxR;
+      var bnL = w.b_l/maxB, bnM = r.borg/maxB, bnU = w.b_u/maxB;
+      r.el = AHP_WEIGHTS.energy*enL + AHP_WEIGHTS.reba*rnL + AHP_WEIGHTS.borg*bnL;
+      r.em = AHP_WEIGHTS.energy*enM + AHP_WEIGHTS.reba*rnM + AHP_WEIGHTS.borg*bnM;
+      r.eu = AHP_WEIGHTS.energy*enU + AHP_WEIGHTS.reba*rnU + AHP_WEIGHTS.borg*bnU;
+      r.eri = (r.el + r.em + r.eu) / 3;
+    });
+  }
+
+  function showImportError(msg){
+    var box = document.getElementById("importError");
+    box.textContent = msg;
+    box.hidden = false;
+  }
+  function hideImportError(){
+    document.getElementById("importError").hidden = true;
+  }
+  function setDatasetStatus(label){
+    var stations = new Set(TASKS.map(function(t){ return t.st; }));
+    document.getElementById("datasetStatus").textContent =
+      "A mostrar: " + label + " — " + TASKS.length + " tarefas, " + stations.size + " postos.";
+  }
+
+  function handleFile(file){
+    if (!file) return;
+    hideImportError();
+    document.getElementById("datasetStatus").textContent = "A carregar " + file.name + "…";
+    var reader = new FileReader();
+    reader.onerror = function(){ showImportError("Não foi possível ler o ficheiro."); setDatasetStatus("dataset atual"); };
+    reader.onload = function(e){
+      try {
+        var data = new Uint8Array(e.target.result);
+        var wb = XLSX.read(data, { type: "array" });
+        var sheetName = wb.SheetNames.filter(function(n){ return normalizeKey(n).indexOf("feri") >= 0; })[0] || wb.SheetNames[0];
+        var rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: null });
+        var result = parseSheet(rows);
+        if (result.errors.length){
+          showImportError(result.errors.join(" "));
+          setDatasetStatus("dataset anterior mantido");
+          return;
+        }
+        loadDataset(result.tasks, file.name);
+      } catch (err){
+        showImportError("Erro ao processar o ficheiro: " + err.message);
+        setDatasetStatus("dataset anterior mantido");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ---------- Template download ----------
+  // Inside the Claude Artifact viewer, the sandbox blocks plain <a download> /
+  // blob links, so the file must go through the "downloads" capability instead.
+  // Outside it (a normal browser tab, localhost, file://) that capability does
+  // not exist, but a plain blob download works natively — use that instead.
+  var downloadsNS = null;
+  var inClaudeFrame = (typeof window.claude !== "undefined" && !!window.claude.use);
+  async function initDownloads(){
+    var btn = document.getElementById("downloadTemplate");
+    if (!inClaudeFrame){
+      btn.disabled = false; btn.title = "";
+      return;
+    }
+    try { downloadsNS = await window.claude.use("downloads"); }
+    catch (e){ downloadsNS = null; }
+    if (downloadsNS){ btn.disabled = false; btn.title = ""; }
+    else { btn.title = "Downloads não disponíveis nesta vista."; }
+  }
+  function buildTemplateWorkbook(){
+    var header = ["Task ID","Station","Category","Time (s)","Energy (kcal)","REBA","Borg"];
+    var example = [
+      [1, 100, "Montagem", 42.5, 0.85, 3, 4],
+      [2, 100, "Teste", 18.0, 0.30, 1, 2],
+      [3, 110, "Aperto", 25.3, 0.55, 4, 6]
+    ];
+    var ws = XLSX.utils.aoa_to_sheet([header].concat(example));
+    ws["!cols"] = [{wch:8},{wch:9},{wch:14},{wch:9},{wch:13},{wch:6},{wch:6}];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "FERI Results");
+    var catRows = [["Categorias de exemplo (podes usar as tuas próprias)"]].concat(CATEGORY_LIST.map(function(c){ return [c]; }));
+    var ws2 = XLSX.utils.aoa_to_sheet(catRows);
+    ws2["!cols"] = [{wch:40}];
+    XLSX.utils.book_append_sheet(wb, ws2, "Categories");
+    return wb;
+  }
+  async function handleDownloadTemplate(){
+    hideImportError();
+    try {
+      var wb = buildTemplateWorkbook();
+      var out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      var blob = new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      if (inClaudeFrame){
+        if (!downloadsNS){ showImportError("Downloads não estão disponíveis nesta vista."); return; }
+        await downloadsNS.save({ filename: "FERI_template.xlsx", data: blob });
+      } else {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "FERI_template.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      }
+    } catch (err){
+      if (err && err.code === "declined") return;
+      showImportError("Não foi possível gerar o ficheiro: " + (err && err.message ? err.message : err));
+    }
+  }
+
+  // ---------- KPIs ----------
+  function renderKPIs(){
+    var n = TASKS.length;
+    var stations = {};
+    TASKS.forEach(function(t){ stations[t.st] = true; });
+    var nStations = Object.keys(stations).length;
+    var totalTime = TASKS.reduce(function(s,t){ return s + t.t; }, 0);
+    var weightedEri = TASKS.reduce(function(s,t){ return s + t.eri * t.t; }, 0) / totalTime;
+    var counts = {}; RISK_ORDER.forEach(function(r){ counts[r] = 0; });
+    TASKS.forEach(function(t){ counts[t.risk] = (counts[t.risk]||0) + 1; });
+    var elevated = ELEVATED.reduce(function(s,r){ return s + counts[r]; }, 0);
+
+    var grid = document.getElementById("kpiGrid");
+    var mins = Math.floor(totalTime/60), secs = Math.round(totalTime%60);
+
+    function mixBar(){
+      return RISK_ORDER.filter(function(r){ return counts[r]>0; }).map(function(r){
+        var pct = (counts[r]/n*100).toFixed(1);
+        return '<span style="width:'+pct+'%; background:'+riskColor(r)+'"></span>';
+      }).join("");
+    }
+
+    var tiles = [
+      { label:"Tasks", value:n, foot: nStations + " stations" },
+      { label:"Total cycle time", value: mins + "m " + secs + "s", foot: totalTime.toFixed(0) + " s summed" },
+      { label:"Time-weighted mean FERI", value: weightedEri.toFixed(3), foot:"0&ndash;1 scale, higher = riskier" },
+      { label:"Elevated-risk tasks", value: elevated, foot: ((elevated/n*100).toFixed(0)) + "% of all tasks (Medium+)" }
+    ];
+    grid.innerHTML = tiles.map(function(k){
+      return '<div class="kpi"><span class="label">'+k.label+'</span><span class="value num">'+k.value+'</span><span class="foot">'+k.foot+'</span></div>';
+    }).join("") + '<div class="kpi"><span class="label">Risk mix</span><div class="mix">'+mixBar()+'</div><span class="foot">'+RISK_ORDER.filter(function(r){return counts[r]>0;}).map(function(r){return r+" "+counts[r];}).join(" &middot; ")+'</span></div>';
+  }
+
+  // ---------- Risk bar chart ----------
+  function renderRiskChart(){
+    var svg = document.getElementById("chartRisk");
+    svg.innerHTML = "";
+    var counts = {}; RISK_ORDER.forEach(function(r){ counts[r] = 0; });
+    TASKS.forEach(function(t){ counts[t.risk] = (counts[t.risk]||0)+1; });
+    var rows = RISK_ORDER.filter(function(r){ return counts[r] > 0 || RISK_ORDER.indexOf(r) < 4; });
+    var max = Math.max.apply(null, rows.map(function(r){return counts[r];}).concat([1]));
+    var W=460,H=210, padL=70, padR=40, padT=10, padB=10;
+    var rowH = (H-padT-padB) / rows.length;
+    rows.forEach(function(r, i){
+      var y = padT + i*rowH + rowH*0.22;
+      var barH = rowH*0.56;
+      var w = (counts[r]/max) * (W-padL-padR-40);
+      svg.appendChild(el("text", {x:padL-10, y:y+barH/2+4, "text-anchor":"end", class:"cat-label"})).textContent = r;
+      svg.appendChild(el("rect", {x:padL, y:y, width:Math.max(w,2), height:barH, rx:4, fill:riskColor(r)}));
+      var t = el("text", {x:padL+w+8, y:y+barH/2+4, class:"bar-label"});
+      t.textContent = counts[r] + " (" + (counts[r]/TASKS.length*100).toFixed(0) + "%)";
+      svg.appendChild(t);
+    });
+  }
+
+  // ---------- Histogram (REBA / Borg) ----------
+  function renderHistogram(svgId, field, color){
+    var svg = document.getElementById(svgId);
+    svg.innerHTML = "";
+    var raw = TASKS.map(function(t){ return t[field]; }).filter(function(v){ return !isNaN(v); });
+    if (!raw.length) return;
+    var lo = Math.floor(Math.min.apply(null, raw));
+    var hi = Math.ceil(Math.max.apply(null, raw));
+    var counts = {};
+    for (var v = lo; v <= hi; v++) counts[v] = 0;
+    raw.forEach(function(v){ var k = Math.round(v); counts[k] = (counts[k]||0) + 1; });
+    var vals = [];
+    for (var v2 = lo; v2 <= hi; v2++) vals.push(v2);
+    var max = Math.max.apply(null, vals.map(function(v){return counts[v]||0;}).concat([1]));
+    var W=460,H=150, padL=26, padR=14, padT=10, padB=26;
+    var plotW = W-padL-padR, plotH = H-padT-padB;
+    var bw = plotW/vals.length;
+    [0,0.5,1].forEach(function(f){
+      var y = padT + plotH*(1-f);
+      svg.appendChild(el("line", {x1:padL, x2:W-padR, y1:y, y2:y, class:"grid-line"}));
+    });
+    vals.forEach(function(v, i){
+      var c = counts[v]||0;
+      var h = max ? (c/max)*plotH : 0;
+      var x = padL + i*bw + bw*0.18;
+      var w = bw*0.64;
+      var y = padT + plotH - h;
+      svg.appendChild(el("rect", {x:x, y:y, width:w, height:Math.max(h,c?2:0), rx:3, fill:color, "data-v":v, "data-c":c, class:"histbar"}));
+      svg.appendChild(el("text", {x:x+w/2, y:H-8, "text-anchor":"middle", class:"axis-label"})).textContent = v;
+      if (c>0) svg.appendChild(el("text", {x:x+w/2, y:y-5, "text-anchor":"middle", class:"bar-label"})).textContent = c;
+    });
+    svg.addEventListener("mousemove", function(ev){
+      if (ev.target.classList && ev.target.classList.contains("histbar")){
+        showTip(ev.clientX, ev.clientY, "<b>"+(field==='reba'?'REBA':'Borg')+" = "+ev.target.getAttribute("data-v")+"</b><br>"+ev.target.getAttribute("data-c")+" tasks");
+      } else hideTip();
+    });
+    svg.addEventListener("mouseleave", hideTip);
+  }
+
+  // ---------- Scatter ----------
+  function renderScatter(){
+    var svg = document.getElementById("chartScatter");
+    svg.innerHTML = "";
+    var W=460,H=190, padL=34, padR=14, padT=10, padB=28;
+    var plotW=W-padL-padR, plotH=H-padT-padB;
+    var maxT = Math.max.apply(null, TASKS.map(function(t){return t.t;}).concat([1]));
+    var maxE = Math.max.apply(null, TASKS.map(function(t){return t.en;}).concat([1]));
+    [0,0.5,1].forEach(function(f){
+      var y = padT + plotH*(1-f);
+      svg.appendChild(el("line", {x1:padL, x2:W-padR, y1:y, y2:y, class:"grid-line"}));
+      svg.appendChild(el("text", {x:padL-6, y:y+3, "text-anchor":"end", class:"axis-label"})).textContent = (maxE*f).toFixed(1);
+    });
+    [0,0.5,1].forEach(function(f){
+      var x = padL + plotW*f;
+      svg.appendChild(el("text", {x:x, y:H-8, "text-anchor":"middle", class:"axis-label"})).textContent = Math.round(maxT*f) + "s";
+    });
+    TASKS.forEach(function(t){
+      var x = padL + (t.t/maxT)*plotW;
+      var y = padT + plotH - (t.en/maxE)*plotH;
+      var c = el("circle", {cx:x, cy:y, r:4.2, fill:riskColor(t.risk), "fill-opacity":0.82, stroke:"var(--surface)", "stroke-width":1});
+      c.dataset.info = t.id+"|"+t.cat+"|"+t.st+"|"+t.t+"|"+t.en+"|"+t.eri;
+      svg.appendChild(c);
+    });
+    svg.addEventListener("mousemove", function(ev){
+      if (ev.target.tagName==="circle"){
+        var p = ev.target.dataset.info.split("|");
+        showTip(ev.clientX, ev.clientY, "<b>#"+p[0]+" &middot; St. "+p[2]+"</b><br>"+p[1]+"<br>"+p[3]+"s &middot; "+parseFloat(p[4]).toFixed(2)+" kcal &middot; FERI "+parseFloat(p[5]).toFixed(3));
+      } else hideTip();
+    });
+    svg.addEventListener("mouseleave", hideTip);
+  }
+  function renderScatterLegend(){
+    var counts = {}; RISK_ORDER.forEach(function(r){ counts[r]=0; });
+    TASKS.forEach(function(t){ counts[t.risk] = (counts[t.risk]||0)+1; });
+    var box = document.getElementById("scatterLegend");
+    box.innerHTML = RISK_ORDER.filter(function(r){return counts[r]>0;}).map(function(r){
+      return '<span class="legend-item"><span class="legend-dot" style="background:'+riskColor(r)+'"></span>'+r+'</span>';
+    }).join("");
+  }
+
+  // ---------- Station charts ----------
+  function stationAgg(){
+    var map = {};
+    TASKS.forEach(function(t){
+      if(!map[t.st]) map[t.st] = { st:t.st, time:0, eriSum:0, n:0 };
+      map[t.st].time += t.t;
+      map[t.st].eriSum += t.eri;
+      map[t.st].n += 1;
+    });
+    return Object.keys(map).map(function(k){
+      var s = map[k];
+      return { st:s.st, time:s.time, avgEri:s.eriSum/s.n, n:s.n };
+    }).sort(function(a,b){ return cmpGeneric(a.st, b.st); });
+  }
+  function hbarChart(container, data, key, color, fmt, maxOverride){
+    var max = maxOverride || Math.max.apply(null, data.map(function(d){return d[key];}).concat([0.0001]));
+    var rowH = 15;
+    var wrap = document.createElement("div");
+    wrap.style.display = "flex"; wrap.style.flexDirection = "column"; wrap.style.gap = "3px";
+    data.forEach(function(d){
+      var row = document.createElement("div");
+      row.style.display = "grid";
+      row.style.gridTemplateColumns = "34px 1fr 52px";
+      row.style.alignItems = "center";
+      row.style.gap = "8px";
+      var lab = document.createElement("span");
+      lab.className = "axis-label"; lab.style.fontSize="10px"; lab.style.textAlign="right"; lab.textContent = d.st;
+      var track = document.createElement("div");
+      track.style.background = "var(--surface-2)"; track.style.borderRadius="3px"; track.style.height=rowH+"px"; track.style.position="relative"; track.style.overflow="hidden";
+      var fill = document.createElement("div");
+      var pct = Math.max((d[key]/max)*100, 2);
+      fill.style.width = pct+"%"; fill.style.height="100%"; fill.style.background=color; fill.style.borderRadius="3px 4px 4px 3px";
+      track.appendChild(fill);
+      var val = document.createElement("span");
+      val.className="num"; val.style.fontSize="10.5px"; val.style.color="var(--text-secondary)";
+      val.textContent = fmt(d[key]);
+      row.appendChild(lab); row.appendChild(track); row.appendChild(val);
+      wrap.appendChild(row);
+    });
+    container.appendChild(wrap);
+  }
+  function renderStationCharts(){
+    var host = document.getElementById("stationCharts");
+    host.innerHTML = "";
+    var data = stationAgg();
+    document.getElementById("stationCaption").textContent =
+      "Total processing time and mean FERI per station, same order for comparison (" + data.length + " stations)";
+    var col1 = document.createElement("div");
+    var h1 = document.createElement("p"); h1.className="cap"; h1.style.margin="0 0 8px"; h1.textContent="Total time (s)";
+    col1.appendChild(h1);
+    hbarChart(col1, data, "time", "var(--accent)", function(v){ return v.toFixed(0)+"s"; });
+    var col2 = document.createElement("div");
+    var h2 = document.createElement("p"); h2.className="cap"; h2.style.margin="0 0 8px"; h2.textContent="Mean FERI";
+    col2.appendChild(h2);
+    hbarChart(col2, data, "avgEri", "var(--accent2)", function(v){ return v.toFixed(3); }, 1);
+    host.appendChild(col1); host.appendChild(col2);
+  }
+
+  // ---------- Explorer ----------
+  var sortKey = "id", sortDir = 1;
+  var state = { search:"", station:"", risks: freshRisksState() };
+
+  function populateStationFilter(){
+    var sel = document.getElementById("stationFilter");
+    while (sel.options.length > 1) sel.remove(1);
+    var stations = Array.from(new Set(TASKS.map(function(t){return t.st;}))).sort(cmpGeneric);
+    stations.forEach(function(s){
+      var o = document.createElement("option"); o.value = s; o.textContent = "Station " + s;
+      sel.appendChild(o);
+    });
+  }
+  function renderChips(){
+    var box = document.getElementById("riskChips");
+    var counts = {}; RISK_ORDER.forEach(function(r){ counts[r]=0; });
+    TASKS.forEach(function(t){ counts[t.risk] = (counts[t.risk]||0)+1; });
+    box.innerHTML = RISK_ORDER.filter(function(r){return counts[r]>0;}).map(function(r){
+      return '<span class="chip" data-risk="'+r+'" aria-pressed="true"><span class="dot" style="background:'+riskColor(r)+'"></span>'+r+' ('+counts[r]+')</span>';
+    }).join("");
+    box.querySelectorAll(".chip").forEach(function(chip){
+      chip.addEventListener("click", function(){
+        var r = chip.dataset.risk;
+        state.risks[r] = !state.risks[r];
+        chip.setAttribute("aria-pressed", state.risks[r]);
+        renderTable();
+      });
+    });
+  }
+  function filteredSorted(){
+    var q = state.search.trim().toLowerCase();
+    var rows = TASKS.filter(function(t){
+      if (state.station && String(t.st) !== state.station) return false;
+      if (state.risks[t.risk] === false) return false;
+      if (q && !( (t.cat.toLowerCase().indexOf(q)>=0) || String(t.id).toLowerCase().indexOf(q)>=0 || String(t.st).toLowerCase().indexOf(q)>=0 )) return false;
+      return true;
+    });
+    rows.sort(function(a,b){ return sortDir * cmpGeneric(a[sortKey], b[sortKey]); });
+    return rows;
+  }
+  function eriBar(t){
+    var l = Math.max(0, Math.min(100, Math.round(t.el*100)));
+    var m = Math.max(0, Math.min(100, Math.round(t.em*100)));
+    var u = Math.max(0, Math.min(100, Math.round(t.eu*100)));
+    return '<div class="eri-wrap"><div class="eri-track">'+
+      '<div class="eri-fill" style="left:'+l+'%; width:'+Math.max(u-l,1)+'%;"></div>'+
+      '<div class="eri-mark" style="left:'+m+'%; background:'+riskColor(t.risk)+'"></div>'+
+      '</div><span class="eri-val">'+t.em.toFixed(3)+'</span></div>';
+  }
+  function renderTable(){
+    var rows = filteredSorted();
+    document.getElementById("rowCount").textContent = rows.length + " of " + TASKS.length + " tasks";
+    var body = document.getElementById("taskBody");
+    body.innerHTML = rows.map(function(t){
+      return "<tr>"+
+        '<td class="num">'+escapeHtml(String(t.id))+'</td>'+
+        '<td class="num">'+escapeHtml(String(t.st))+'</td>'+
+        '<td class="cat"><span class="cat-tag">'+escapeHtml(t.cat)+'</span></td>'+
+        '<td class="num">'+t.t.toFixed(1)+'</td>'+
+        '<td class="num">'+t.en.toFixed(2)+'</td>'+
+        '<td class="num">'+t.reba+'</td>'+
+        '<td class="num">'+t.borg+'</td>'+
+        '<td>'+eriBar(t)+'</td>'+
+        '<td><span class="badge '+riskSlug(t.risk)+'"><span class="dot"></span>'+t.risk+'</span></td>'+
+        "</tr>";
+    }).join("");
+    document.querySelectorAll("thead th").forEach(function(th){
+      th.classList.toggle("sorted", th.dataset.key===sortKey);
+      th.dataset.arrow = sortDir===1 ? "↑" : "↓";
+    });
+  }
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; });
+  }
+
+  function updateHeadings(){
+    document.getElementById("analyticsSub").textContent = "Computed over all " + TASKS.length + " tasks";
+    document.getElementById("explorerTitle").textContent = "All " + TASKS.length + " tasks";
+  }
+
+  function renderAll(){
+    updateHeadings();
+    renderKPIs();
+    renderRiskChart();
+    renderHistogram("chartReba", "reba", cssVar("--accent"));
+    renderHistogram("chartBorg", "borg", cssVar("--accent2"));
+    renderScatter();
+    renderScatterLegend();
+    renderStationCharts();
+    populateStationFilter();
+    renderChips();
+    renderTable();
+  }
+
+  function loadDataset(tasks, label){
+    TASKS = tasks;
+    sortKey = "id"; sortDir = 1;
+    state = { search:"", station:"", risks: freshRisksState() };
+    document.getElementById("search").value = "";
+    document.getElementById("stationFilter").value = "";
+    hideImportError();
+    setDatasetStatus(label);
+    renderAll();
+  }
+
+  // ---------- static listeners + boot ----------
+  document.querySelectorAll("thead th").forEach(function(th){
+    th.addEventListener("click", function(){
+      var k = th.dataset.key;
+      if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+      renderTable();
+    });
+  });
+  document.getElementById("search").addEventListener("input", function(e){
+    state.search = e.target.value; renderTable();
+  });
+  document.getElementById("stationFilter").addEventListener("change", function(){
+    state.station = this.value; renderTable();
+  });
+  document.getElementById("fileInput").addEventListener("change", function(){
+    handleFile(this.files[0]);
+    this.value = "";
+  });
+  document.getElementById("resetSample").addEventListener("click", function(){
+    loadDataset(SAMPLE_TASKS.slice(), "dataset de exemplo (97 tarefas)");
+  });
+  document.getElementById("downloadTemplate").addEventListener("click", handleDownloadTemplate);
+
+  loadDataset(SAMPLE_TASKS.slice(), "dataset de exemplo (97 tarefas)");
+  initDownloads();
+})();
+</script>
