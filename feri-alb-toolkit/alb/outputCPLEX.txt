@@ -1,0 +1,1275 @@
+assembly_line_wt000_we100_cut00_optimistic
+// solution (multi-objective optimal) with objective 3.582861
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 3.582861
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 3.582861
+          cycleTime  = 5.8477
+          maxEriLoad = 3.582861
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 1.841674398
+          SI_time = sqrt(SI2_time) = 4.783689245   SI2_time = 22.88368279
+          SI_eri  = sqrt(SI2_eri)  = 1.357083047   SI2_eri  = 1.841674398
+
+  w_time = 0   w_eri = 1
+  scenario_tag = wt=0.00 we=1.00 cut=0.0 optimistic
+  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17, 18] 
+    TN_m = 5.1683  idle = 0.6794  util% = 88.38175693
+    ERI  = 3.570541  idle = 0.01232
+  Operator 2: WS5[15, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[37, 38, 39, 40] 
+    TN_m = 4.7402  idle = 1.1075  util% = 81.060929938
+    ERI  = 3.570289  idle = 0.012572
+  Operator 3: WS7[36] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52, 53, 54] WS12[55, 56, 57, 58, 59, 60, 61] 
+    TN_m = 5.8477  idle = 0  util% = 100
+    ERI  = 3.582861  idle = 4.440892099e-16
+  Operator 4: WS12[62, 63, 64, 65] WS13[66, 67] WS14[70, 71] WS15[68, 69] 
+    TN_m = 3.8076  idle = 2.0401  util% = 65.112779383
+    ERI  = 3.514108  idle = 0.068753
+  Operator 5: WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] WS19[83, 84] 
+    TN_m = 3.7186  idle = 2.1291  util% = 63.590813482
+    ERI  = 2.543192  idle = 1.039669
+  Operator 6: WS19[85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 2.3121  idle = 3.5356  util% = 39.538622022
+    ERI  = 2.713536  idle = 0.869325
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 72.947483626%
+  Total TN_m      : 25.5945
+  SI_time         : 4.783689245   (lower = more balanced time load)
+  SI_eri          : 1.357083047   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt000_we100_cut00_pessimistic
+// solution (multi-objective optimal) with objective 6.275371
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 6.275371
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 6.275371
+          cycleTime  = 5.3847
+          maxEriLoad = 6.275371
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.431472625
+          SI_time = sqrt(SI2_time) = 2.431927102   SI2_time = 5.91426943
+          SI_eri  = sqrt(SI2_eri)  = 1.852423446   SI2_eri  = 3.431472625
+
+  w_time = 0   w_eri = 1
+  scenario_tag = wt=0.00 we=1.00 cut=0.0 pessimistic
+  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] 
+    TN_m = 5.3847  idle = 0  util% = 100
+    ERI  = 5.826976  idle = 0.448395
+  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.2771  idle = 1.1076  util% = 79.430608948
+    ERI  = 6.251161  idle = 0.02421
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.2438  idle = 0.1409  util% = 97.383326833
+    ERI  = 5.609606  idle = 0.665765
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 5.1973  idle = 0.1874  util% = 96.519768975
+    ERI  = 5.653847  idle = 0.621524
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.8968  idle = 0.4879  util% = 90.939142385
+    ERI  = 6.275371  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2884  idle = 2.0963  util% = 61.069326053
+    ERI  = 4.726083  idle = 1.549288
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 87.557028866%
+  Total TN_m      : 28.2881
+  SI_time         : 2.431927102   (lower = more balanced time load)
+  SI_eri          : 1.852423446   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt000_we100_cut05_optimistic
+// solution (multi-objective optimal) with objective 4.31379
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.31379
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.31379
+          cycleTime  = 5.7357
+          maxEriLoad = 4.31379
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.156509925
+          SI_time = sqrt(SI2_time) = 4.267698281   SI2_time = 18.21324862
+          SI_eri  = sqrt(SI2_eri)  = 1.776656952   SI2_eri  = 3.156509925
+
+  w_time = 0   w_eri = 1
+  scenario_tag = wt=0.00 we=1.00 cut=0.5 optimistic
+  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[15, 16, 17, 18] 
+    TN_m = 5.3083  idle = 0.4274  util% = 92.548424778
+    ERI  = 4.264582  idle = 0.049208
+  Operator 2: WS5[14, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[37, 38, 39] 
+    TN_m = 4.7034  idle = 1.0323  util% = 82.002196768
+    ERI  = 4.299746  idle = 0.014044
+  Operator 3: WS7[36, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52, 53, 54] WS12[55, 56, 57, 58, 59, 60] 
+    TN_m = 5.7357  idle = -8.881784197e-16  util% = 100
+    ERI  = 4.31379  idle = 0
+  Operator 4: WS12[61, 62, 63, 64, 65] WS13[66, 67] WS14[70, 71] WS15[68, 69] 
+    TN_m = 4.331  idle = 1.4047  util% = 75.509528044
+    ERI  = 4.207661  idle = 0.106129
+  Operator 5: WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] WS19[83, 84] 
+    TN_m = 3.8165  idle = 1.9192  util% = 66.539393622
+    ERI  = 3.080998  idle = 1.232792
+  Operator 6: WS19[85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 2.3729  idle = 3.3628  util% = 41.370713252
+    ERI  = 3.039878  idle = 1.273912
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 76.328376077%
+  Total TN_m      : 26.2678
+  SI_time         : 4.267698281   (lower = more balanced time load)
+  SI_eri          : 1.776656952   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt000_we100_cut05_pessimistic
+// solution (multi-objective optimal) with objective 5.651708
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.651708
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.651708
+          cycleTime  = 5.2565
+          maxEriLoad = 5.651708
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.912757497
+          SI_time = sqrt(SI2_time) = 2.373727724   SI2_time = 5.63458331
+          SI_eri  = sqrt(SI2_eri)  = 1.706680256   SI2_eri  = 2.912757497
+
+  w_time = 0   w_eri = 1
+  scenario_tag = wt=0.00 we=1.00 cut=0.5 pessimistic
+  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] 
+    TN_m = 5.2565  idle = 0  util% = 100
+    ERI  = 5.191476  idle = 0.460232
+  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.1754  idle = 1.0811  util% = 79.43308285
+    ERI  = 5.500848  idle = 0.15086
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.1187  idle = 0.1378  util% = 97.378483782
+    ERI  = 4.927933  idle = 0.723775
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 5.0734  idle = 0.1831  util% = 96.516693617
+    ERI  = 5.042679  idle = 0.609029
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.7803  idle = 0.4762  util% = 90.940740036
+    ERI  = 5.651708  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2104  idle = 2.0461  util% = 61.074859698
+    ERI  = 4.316261  idle = 1.335447
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 87.557309997%
+  Total TN_m      : 27.6147
+  SI_time         : 2.373727724   (lower = more balanced time load)
+  SI_eri          : 1.706680256   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt000_we100_cut10
+// solution (multi-objective optimal) with objective 5.028046
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.028046
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.028046
+          cycleTime  = 4.9937
+          maxEriLoad = 5.028046
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.675926044
+          SI_time = sqrt(SI2_time) = 2.002403983   SI2_time = 4.00962171
+          SI_eri  = sqrt(SI2_eri)  = 1.635825799   SI2_eri  = 2.675926044
+
+  w_time = 0   w_eri = 1
+  scenario_tag = wt=0.00 we=1.00 cut=1.0 midpoint
+  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.8506  idle = 0.1431  util% = 97.134389331
+    ERI  = 4.361735  idle = 0.666311
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.3509  idle = 0.6428  util% = 87.127781004
+    ERI  = 4.944782  idle = 0.083264
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.9937  idle = -8.881784197e-16  util% = 100
+    ERI  = 4.246268  idle = 0.781778
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.9497  idle = 0.044  util% = 99.118889801
+    ERI  = 4.431514  idle = 0.596532
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.6638  idle = 0.3299  util% = 93.393676032
+    ERI  = 5.028046  idle = 8.881784197e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.1322  idle = 1.8615  util% = 62.723031019
+    ERI  = 3.906442  idle = 1.121604
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 89.916294531%
+  Total TN_m      : 26.9409
+  SI_time         : 2.002403983   (lower = more balanced time load)
+  SI_eri          : 1.635825799   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt025_we075_cut00_optimistic
+// solution (multi-objective optimal) with objective 4.01114375
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.01114375
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.01114375
+          cycleTime  = 4.7024
+          maxEriLoad = 3.780725
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.739675843
+          SI_time = sqrt(SI2_time) = 1.801709974   SI2_time = 3.24615883
+          SI_eri  = sqrt(SI2_eri)  = 1.603386473   SI2_eri  = 2.570848181
+
+  w_time = 0.25   w_eri = 0.75
+  scenario_tag = wt=0.25 we=0.75 cut=0.0 optimistic
+  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] 
+    TN_m = 4.3047  idle = 0.3977  util% = 91.542616536
+    ERI  = 2.877659  idle = 0.903066
+  Operator 2: WS5[14, 15, 16, 17, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.5331  idle = 0.1693  util% = 96.399710786
+    ERI  = 3.73139  idle = 0.049335
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.6483  idle = 0.0541  util% = 98.849523647
+    ERI  = 2.808773  idle = 0.971952
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.7024  idle = 0  util% = 100
+    ERI  = 3.209179  idle = 0.571546
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.4306  idle = 0.2718  util% = 94.21997278
+    ERI  = 3.780725  idle = -4.440892099e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 2.9754  idle = 1.727  util% = 63.274072814
+    ERI  = 3.086801  idle = 0.693924
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 90.714316094%
+  Total TN_m      : 25.5945
+  SI_time         : 1.801709974   (lower = more balanced time load)
+  SI_eri          : 1.603386473   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt025_we075_cut00_pessimistic
+// solution (multi-objective optimal) with objective 6.05270325
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 6.05270325
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 6.05270325
+          cycleTime  = 5.3847
+          maxEriLoad = 6.275371
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.052171826
+          SI_time = sqrt(SI2_time) = 2.431927102   SI2_time = 5.91426943
+          SI_eri  = sqrt(SI2_eri)  = 1.852423446   SI2_eri  = 3.431472625
+
+  w_time = 0.25   w_eri = 0.75
+  scenario_tag = wt=0.25 we=0.75 cut=0.0 pessimistic
+  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] 
+    TN_m = 5.3847  idle = 0  util% = 100
+    ERI  = 5.826976  idle = 0.448395
+  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.2771  idle = 1.1076  util% = 79.430608948
+    ERI  = 6.251161  idle = 0.02421
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.2438  idle = 0.1409  util% = 97.383326833
+    ERI  = 5.609606  idle = 0.665765
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 5.1973  idle = 0.1874  util% = 96.519768975
+    ERI  = 5.653847  idle = 0.621524
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.8968  idle = 0.4879  util% = 90.939142385
+    ERI  = 6.275371  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2884  idle = 2.0963  util% = 61.069326053
+    ERI  = 4.726083  idle = 1.549288
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 87.557028866%
+  Total TN_m      : 28.2881
+  SI_time         : 2.431927102   (lower = more balanced time load)
+  SI_eri          : 1.852423446   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt025_we075_cut05_optimistic
+// solution (multi-objective optimal) with objective 4.50981375
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.50981375
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.50981375
+          cycleTime  = 4.8261
+          maxEriLoad = 4.404385
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.74148558
+          SI_time = sqrt(SI2_time) = 1.862088945   SI2_time = 3.46737524
+          SI_eri  = sqrt(SI2_eri)  = 1.58098778   SI2_eri  = 2.49952236
+
+  w_time = 0.25   w_eri = 0.75
+  scenario_tag = wt=0.25 we=0.75 cut=0.5 optimistic
+  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.7296  idle = 0.0965  util% = 98.000455855
+    ERI  = 3.765529  idle = 0.638856
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.3409  idle = 0.4852  util% = 89.946333478
+    ERI  = 4.268111  idle = 0.136274
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.7704  idle = 0.0557  util% = 98.845858975
+    ERI  = 3.451665  idle = 0.95272
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.8261  idle = 0  util% = 100
+    ERI  = 3.820344  idle = 0.584041
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.5472  idle = 0.2789  util% = 94.22100661
+    ERI  = 4.404385  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.0536  idle = 1.7725  util% = 63.272621786
+    ERI  = 3.496621  idle = 0.907764
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 90.714379451%
+  Total TN_m      : 26.2678
+  SI_time         : 1.862088945   (lower = more balanced time load)
+  SI_eri          : 1.58098778   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt025_we075_cut05_pessimistic
+// solution (multi-objective optimal) with objective 5.552906
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.552906
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.552906
+          cycleTime  = 5.2565
+          maxEriLoad = 5.651708
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.59321395
+          SI_time = sqrt(SI2_time) = 2.373727724   SI2_time = 5.63458331
+          SI_eri  = sqrt(SI2_eri)  = 1.706680256   SI2_eri  = 2.912757497
+
+  w_time = 0.25   w_eri = 0.75
+  scenario_tag = wt=0.25 we=0.75 cut=0.5 pessimistic
+  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] 
+    TN_m = 5.2565  idle = 0  util% = 100
+    ERI  = 5.191476  idle = 0.460232
+  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.1754  idle = 1.0811  util% = 79.43308285
+    ERI  = 5.500848  idle = 0.15086
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.1187  idle = 0.1378  util% = 97.378483782
+    ERI  = 4.927933  idle = 0.723775
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 5.0734  idle = 0.1831  util% = 96.516693617
+    ERI  = 5.042679  idle = 0.609029
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.7803  idle = 0.4762  util% = 90.940740036
+    ERI  = 5.651708  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2104  idle = 2.0461  util% = 61.074859698
+    ERI  = 4.316261  idle = 1.335447
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 87.557309997%
+  Total TN_m      : 27.6147
+  SI_time         : 2.373727724   (lower = more balanced time load)
+  SI_eri          : 1.706680256   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt025_we075_cut10
+// solution (multi-objective optimal) with objective 5.0194595
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.0194595
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.0194595
+          cycleTime  = 4.9937
+          maxEriLoad = 5.028046
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.00934996
+          SI_time = sqrt(SI2_time) = 2.002403983   SI2_time = 4.00962171
+          SI_eri  = sqrt(SI2_eri)  = 1.635825799   SI2_eri  = 2.675926044
+
+  w_time = 0.25   w_eri = 0.75
+  scenario_tag = wt=0.25 we=0.75 cut=1.0 midpoint
+  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.8506  idle = 0.1431  util% = 97.134389331
+    ERI  = 4.361735  idle = 0.666311
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.3509  idle = 0.6428  util% = 87.127781004
+    ERI  = 4.944782  idle = 0.083264
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.9937  idle = -8.881784197e-16  util% = 100
+    ERI  = 4.246268  idle = 0.781778
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.9497  idle = 0.044  util% = 99.118889801
+    ERI  = 4.431514  idle = 0.596532
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.6638  idle = 0.3299  util% = 93.393676032
+    ERI  = 5.028046  idle = 8.881784197e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.1322  idle = 1.8615  util% = 62.723031019
+    ERI  = 3.906442  idle = 1.121604
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 89.916294531%
+  Total TN_m      : 26.9409
+  SI_time         : 2.002403983   (lower = more balanced time load)
+  SI_eri          : 1.635825799   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt050_we050_cut00_optimistic
+// solution (multi-objective optimal) with objective 4.2415625
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.2415625
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.2415625
+          cycleTime  = 4.7024
+          maxEriLoad = 3.780725
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.956547574
+          SI_time = sqrt(SI2_time) = 1.790173771   SI2_time = 3.20472213
+          SI_eri  = sqrt(SI2_eri)  = 1.645713529   SI2_eri  = 2.708373018
+
+  w_time = 0.5   w_eri = 0.5
+  scenario_tag = wt=0.50 we=0.50 cut=0.0 optimistic
+  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.6083  idle = 0.0941  util% = 97.998894182
+    ERI  = 3.169323  idle = 0.611402
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36, 37] 
+    TN_m = 4.4216  idle = 0.2808  util% = 94.02858115
+    ERI  = 3.700637  idle = 0.080088
+  Operator 3: WS7[38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.4562  idle = 0.2462  util% = 94.764375638
+    ERI  = 2.547862  idle = 1.232863
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.7024  idle = 0  util% = 100
+    ERI  = 3.209179  idle = 0.571546
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.4306  idle = 0.2718  util% = 94.21997278
+    ERI  = 3.780725  idle = -4.440892099e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 2.9754  idle = 1.727  util% = 63.274072814
+    ERI  = 3.086801  idle = 0.693924
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 90.714316094%
+  Total TN_m      : 25.5945
+  SI_time         : 1.790173771   (lower = more balanced time load)
+  SI_eri          : 1.645713529   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt050_we050_cut00_pessimistic
+// solution (multi-objective optimal) with objective 5.8300355
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.8300355
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.8300355
+          cycleTime  = 5.3847
+          maxEriLoad = 6.275371
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.672871027
+          SI_time = sqrt(SI2_time) = 2.431927102   SI2_time = 5.91426943
+          SI_eri  = sqrt(SI2_eri)  = 1.852423446   SI2_eri  = 3.431472625
+
+  w_time = 0.5   w_eri = 0.5
+  scenario_tag = wt=0.50 we=0.50 cut=0.0 pessimistic
+  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] 
+    TN_m = 5.3847  idle = 0  util% = 100
+    ERI  = 5.826976  idle = 0.448395
+  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.2771  idle = 1.1076  util% = 79.430608948
+    ERI  = 6.251161  idle = 0.02421
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.2438  idle = 0.1409  util% = 97.383326833
+    ERI  = 5.609606  idle = 0.665765
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 5.1973  idle = 0.1874  util% = 96.519768975
+    ERI  = 5.653847  idle = 0.621524
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.8968  idle = 0.4879  util% = 90.939142385
+    ERI  = 6.275371  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2884  idle = 2.0963  util% = 61.069326053
+    ERI  = 4.726083  idle = 1.549288
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 87.557028866%
+  Total TN_m      : 28.2881
+  SI_time         : 2.431927102   (lower = more balanced time load)
+  SI_eri          : 1.852423446   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt050_we050_cut05_optimistic
+// solution (multi-objective optimal) with objective 4.6152425
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.6152425
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.6152425
+          cycleTime  = 4.8261
+          maxEriLoad = 4.404385
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.9834488
+          SI_time = sqrt(SI2_time) = 1.862088945   SI2_time = 3.46737524
+          SI_eri  = sqrt(SI2_eri)  = 1.58098778   SI2_eri  = 2.49952236
+
+  w_time = 0.5   w_eri = 0.5
+  scenario_tag = wt=0.50 we=0.50 cut=0.5 optimistic
+  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.7296  idle = 0.0965  util% = 98.000455855
+    ERI  = 3.765529  idle = 0.638856
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.3409  idle = 0.4852  util% = 89.946333478
+    ERI  = 4.268111  idle = 0.136274
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.7704  idle = 0.0557  util% = 98.845858975
+    ERI  = 3.451665  idle = 0.95272
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.8261  idle = 0  util% = 100
+    ERI  = 3.820344  idle = 0.584041
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.5472  idle = 0.2789  util% = 94.22100661
+    ERI  = 4.404385  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.0536  idle = 1.7725  util% = 63.272621786
+    ERI  = 3.496621  idle = 0.907764
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 90.714379451%
+  Total TN_m      : 26.2678
+  SI_time         : 1.862088945   (lower = more balanced time load)
+  SI_eri          : 1.58098778   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt050_we050_cut05_pessimistic
+// solution (multi-objective optimal) with objective 5.426543
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.426543
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.426543
+          cycleTime  = 5.1187
+          maxEriLoad = 5.734386
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.981662275
+          SI_time = sqrt(SI2_time) = 2.052733268   SI2_time = 4.21371387
+          SI_eri  = sqrt(SI2_eri)  = 1.936391148   SI2_eri  = 3.749610679
+
+  w_time = 0.5   w_eri = 0.5
+  scenario_tag = wt=0.50 we=0.50 cut=0.5 pessimistic
+  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.972  idle = 0.1467  util% = 97.134037939
+    ERI  = 4.957938  idle = 0.776448
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.4599  idle = 0.6588  util% = 87.129544611
+    ERI  = 5.734386  idle = 0
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.1187  idle = 0  util% = 100
+    ERI  = 4.927933  idle = 0.806453
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 5.0734  idle = 0.0453  util% = 99.11500967
+    ERI  = 5.042679  idle = 0.691707
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.7803  idle = 0.3384  util% = 93.388946412
+    ERI  = 5.651708  idle = 0.082678
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2104  idle = 1.9083  util% = 62.719049759
+    ERI  = 4.316261  idle = 1.418125
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 89.914431399%
+  Total TN_m      : 27.6147
+  SI_time         : 2.052733268   (lower = more balanced time load)
+  SI_eri          : 1.936391148   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt050_we050_cut10
+// solution (multi-objective optimal) with objective 5.010873
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.010873
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.010873
+          cycleTime  = 4.9937
+          maxEriLoad = 5.028046
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.342773877
+          SI_time = sqrt(SI2_time) = 2.002403983   SI2_time = 4.00962171
+          SI_eri  = sqrt(SI2_eri)  = 1.635825799   SI2_eri  = 2.675926044
+
+  w_time = 0.5   w_eri = 0.5
+  scenario_tag = wt=0.50 we=0.50 cut=1.0 midpoint
+  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.8506  idle = 0.1431  util% = 97.134389331
+    ERI  = 4.361735  idle = 0.666311
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] 
+    TN_m = 4.3509  idle = 0.6428  util% = 87.127781004
+    ERI  = 4.944782  idle = 0.083264
+  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.9937  idle = -8.881784197e-16  util% = 100
+    ERI  = 4.246268  idle = 0.781778
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.9497  idle = 0.044  util% = 99.118889801
+    ERI  = 4.431514  idle = 0.596532
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.6638  idle = 0.3299  util% = 93.393676032
+    ERI  = 5.028046  idle = 8.881784197e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.1322  idle = 1.8615  util% = 62.723031019
+    ERI  = 3.906442  idle = 1.121604
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 89.916294531%
+  Total TN_m      : 26.9409
+  SI_time         : 2.002403983   (lower = more balanced time load)
+  SI_eri          : 1.635825799   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt075_we025_cut00_optimistic
+// solution (multi-objective optimal) with objective 4.46732675
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.46732675
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.46732675
+          cycleTime  = 4.6792
+          maxEriLoad = 3.831707
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.084312518
+          SI_time = sqrt(SI2_time) = 1.753525925   SI2_time = 3.07485317
+          SI_eri  = sqrt(SI2_eri)  = 1.764281883   SI2_eri  = 3.112690561
+
+  w_time = 0.75   w_eri = 0.25
+  scenario_tag = wt=0.75 we=0.25 cut=0.0 optimistic
+  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.6083  idle = 0.0709  util% = 98.484783724
+    ERI  = 3.169323  idle = 0.662384
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36, 37] 
+    TN_m = 4.4216  idle = 0.2576  util% = 94.494785433
+    ERI  = 3.700637  idle = 0.13107
+  Operator 3: WS7[38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.4562  idle = 0.223  util% = 95.234228073
+    ERI  = 2.547862  idle = 1.283845
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.4538  idle = 0.2254  util% = 95.182937254
+    ERI  = 3.158197  idle = 0.67351
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.6792  idle = 0  util% = 100
+    ERI  = 3.831707  idle = -4.440892099e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 2.9754  idle = 1.7038  util% = 63.587792785
+    ERI  = 3.086801  idle = 0.744906
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.164087878%
+  Total TN_m      : 25.5945
+  SI_time         : 1.753525925   (lower = more balanced time load)
+  SI_eri          : 1.764281883   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt075_we025_cut00_pessimistic
+// solution (multi-objective optimal) with objective 5.52880975
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.52880975
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.52880975
+          cycleTime  = 5.2113
+          maxEriLoad = 6.481339
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.716709414
+          SI_time = sqrt(SI2_time) = 2.122178906   SI2_time = 4.50364331
+          SI_eri  = sqrt(SI2_eri)  = 2.314283415   SI2_eri  = 5.355907725
+
+  w_time = 0.75   w_eri = 0.25
+  scenario_tag = wt=0.75 we=0.25 cut=0.0 pessimistic
+  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 5.0933  idle = 0.118  util% = 97.735689751
+    ERI  = 5.554144  idle = 0.927195
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34] 
+    TN_m = 4.3222  idle = 0.8891  util% = 82.938997947
+    ERI  = 6.233515  idle = 0.247824
+  Operator 3: WS6[35] WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] 
+    TN_m = 5.2013  idle = 0.01  util% = 99.808109301
+    ERI  = 5.515513  idle = 0.965826
+  Operator 4: WS11[52, 53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 5.2113  idle = 0  util% = 100
+    ERI  = 5.83245  idle = 0.648889
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 5.1716  idle = 0.0397  util% = 99.238193925
+    ERI  = 6.481339  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2884  idle = 1.9229  util% = 63.101337478
+    ERI  = 4.726083  idle = 1.755256
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 90.470388067%
+  Total TN_m      : 28.2881
+  SI_time         : 2.122178906   (lower = more balanced time load)
+  SI_eri          : 2.314283415   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt075_we025_cut05_optimistic
+// solution (multi-objective optimal) with objective 4.72067125
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.72067125
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.72067125
+          cycleTime  = 4.8261
+          maxEriLoad = 4.404385
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.22541202
+          SI_time = sqrt(SI2_time) = 1.862088945   SI2_time = 3.46737524
+          SI_eri  = sqrt(SI2_eri)  = 1.58098778   SI2_eri  = 2.49952236
+
+  w_time = 0.75   w_eri = 0.25
+  scenario_tag = wt=0.75 we=0.25 cut=0.5 optimistic
+  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.7296  idle = 0.0965  util% = 98.000455855
+    ERI  = 3.765529  idle = 0.638856
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.3409  idle = 0.4852  util% = 89.946333478
+    ERI  = 4.268111  idle = 0.136274
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.7704  idle = 0.0557  util% = 98.845858975
+    ERI  = 3.451665  idle = 0.95272
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] 
+    TN_m = 4.8261  idle = 0  util% = 100
+    ERI  = 3.820344  idle = 0.584041
+  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.5472  idle = 0.2789  util% = 94.22100661
+    ERI  = 4.404385  idle = 0
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.0536  idle = 1.7725  util% = 63.272621786
+    ERI  = 3.496621  idle = 0.907764
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 90.714379451%
+  Total TN_m      : 26.2678
+  SI_time         : 1.862088945   (lower = more balanced time load)
+  SI_eri          : 1.58098778   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt075_we025_cut05_pessimistic
+// solution (multi-objective optimal) with objective 5.26759425
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.26759425
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.26759425
+          cycleTime  = 5.0485
+          maxEriLoad = 5.924877
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.271280373
+          SI_time = sqrt(SI2_time) = 1.918332429   SI2_time = 3.67999931
+          SI_eri  = sqrt(SI2_eri)  = 2.458683298   SI2_eri  = 6.045123561
+
+  w_time = 0.75   w_eri = 0.25
+  scenario_tag = wt=0.75 we=0.25 cut=0.5 pessimistic
+  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.972  idle = 0.0765  util% = 98.484698425
+    ERI  = 4.957938  idle = 0.966939
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.5635  idle = 0.485  util% = 90.393186095
+    ERI  = 5.924877  idle = 0
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.0151  idle = 0.0334  util% = 99.338417352
+    ERI  = 4.737442  idle = 1.187435
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.8052  idle = 0.2433  util% = 95.180746756
+    ERI  = 4.875458  idle = 1.049419
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 5.0485  idle = 8.881784197e-16  util% = 100
+    ERI  = 5.818929  idle = 0.105948
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2104  idle = 1.8381  util% = 63.591165693
+    ERI  = 4.316261  idle = 1.608616
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.164702387%
+  Total TN_m      : 27.6147
+  SI_time         : 1.918332429   (lower = more balanced time load)
+  SI_eri          : 2.458683298   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt075_we025_cut10
+// solution (multi-objective optimal) with objective 4.98325525
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.98325525
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.98325525
+          cycleTime  = 4.9255
+          maxEriLoad = 5.156521
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.640966037
+          SI_time = sqrt(SI2_time) = 1.871690629   SI2_time = 3.50322581
+          SI_eri  = sqrt(SI2_eri)  = 2.01350111   SI2_eri  = 4.054186718
+
+  w_time = 0.75   w_eri = 0.25
+  scenario_tag = wt=0.75 we=0.25 cut=1.0 midpoint
+  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.8506  idle = 0.0749  util% = 98.479342199
+    ERI  = 4.361735  idle = 0.794786
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.452  idle = 0.4735  util% = 90.386762765
+    ERI  = 5.096494  idle = 0.060027
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.8926  idle = 0.0329  util% = 99.332047508
+    ERI  = 4.094556  idle = 1.061965
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.688  idle = 0.2375  util% = 95.178154502
+    ERI  = 4.303039  idle = 0.853482
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.9255  idle = -8.881784197e-16  util% = 100
+    ERI  = 5.156521  idle = 8.881784197e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.1322  idle = 1.7933  util% = 63.591513552
+    ERI  = 3.906442  idle = 1.250079
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.161303421%
+  Total TN_m      : 26.9409
+  SI_time         : 1.871690629   (lower = more balanced time load)
+  SI_eri          : 2.01350111   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt100_we000_cut00_optimistic
+// solution (multi-objective optimal) with objective 4.6792
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.6792
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.6792
+          cycleTime  = 4.6792
+          maxEriLoad = 3.831707
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.13490709
+          SI_time = sqrt(SI2_time) = 1.770566884   SI2_time = 3.13490709
+          SI_eri  = sqrt(SI2_eri)  = 1.674645895   SI2_eri  = 2.804438875
+
+  w_time = 1   w_eri = 0
+  scenario_tag = wt=1.00 we=0.00 cut=0.0 optimistic
+  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14] 
+    TN_m = 4.5684  idle = 0.1108  util% = 97.632073859
+    ERI  = 2.993316  idle = 0.838391
+  Operator 2: WS5[15, 16, 17, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.2694  idle = 0.4098  util% = 91.242092665
+    ERI  = 3.615733  idle = 0.215974
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.6483  idle = 0.0309  util% = 99.339630706
+    ERI  = 2.808773  idle = 1.022934
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.4538  idle = 0.2254  util% = 95.182937254
+    ERI  = 3.158197  idle = 0.67351
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.6792  idle = 0  util% = 100
+    ERI  = 3.831707  idle = -4.440892099e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 2.9754  idle = 1.7038  util% = 63.587792785
+    ERI  = 3.086801  idle = 0.744906
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.164087878%
+  Total TN_m      : 25.5945
+  SI_time         : 1.770566884   (lower = more balanced time load)
+  SI_eri          : 1.674645895   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt100_we000_cut00_pessimistic
+// solution (multi-objective optimal) with objective 5.1716
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.1716
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.1716
+          cycleTime  = 5.1716
+          maxEriLoad = 6.753263
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.86268955
+          SI_time = sqrt(SI2_time) = 1.965372624   SI2_time = 3.86268955
+          SI_eri  = sqrt(SI2_eri)  = 3.034838336   SI2_eri  = 9.210243725
+
+  w_time = 1   w_eri = 0
+  scenario_tag = wt=1.00 we=0.00 cut=0.0 pessimistic
+  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 5.0933  idle = 0.0783  util% = 98.485961791
+    ERI  = 5.554144  idle = 1.199119
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.6747  idle = 0.4969  util% = 90.391754969
+    ERI  = 6.753263  idle = 0
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.1376  idle = 0.034  util% = 99.34256323
+    ERI  = 5.380336  idle = 1.372927
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.9225  idle = 0.2491  util% = 95.183308841
+    ERI  = 5.447879  idle = 1.305384
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 5.1716  idle = 0  util% = 100
+    ERI  = 6.481339  idle = 0.271924
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2884  idle = 1.8832  util% = 63.585737489
+    ERI  = 4.726083  idle = 2.02718
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.16488772%
+  Total TN_m      : 28.2881
+  SI_time         : 1.965372624   (lower = more balanced time load)
+  SI_eri          : 3.034838336   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt100_we000_cut05_optimistic
+// solution (multi-objective optimal) with objective 4.8024
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.8024
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.8024
+          cycleTime  = 4.8024
+          maxEriLoad = 4.494113
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.30517398
+          SI_time = sqrt(SI2_time) = 1.818013746   SI2_time = 3.30517398
+          SI_eri  = sqrt(SI2_eri)  = 1.876250999   SI2_eri  = 3.520317812
+
+  w_time = 1   w_eri = 0
+  scenario_tag = wt=1.00 we=0.00 cut=0.5 optimistic
+  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[15] 
+    TN_m = 4.6926  idle = 0.1098  util% = 97.713643178
+    ERI  = 3.569559  idle = 0.924554
+  Operator 2: WS5[14, 16, 17, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.3779  idle = 0.4245  util% = 91.160669665
+    ERI  = 4.464081  idle = 0.030032
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.7704  idle = 0.032  util% = 99.3336665
+    ERI  = 3.451665  idle = 1.042448
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.5709  idle = 0.2315  util% = 95.179493587
+    ERI  = 3.730616  idle = 0.763497
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.8024  idle = 0  util% = 100
+    ERI  = 4.494113  idle = -1.776356839e-15
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.0536  idle = 1.7488  util% = 63.58487423
+    ERI  = 3.496621  idle = 0.997492
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.16205786%
+  Total TN_m      : 26.2678
+  SI_time         : 1.818013746   (lower = more balanced time load)
+  SI_eri          : 1.876250999   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt100_we000_cut05_pessimistic
+// solution (multi-objective optimal) with objective 5.0485
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.0485
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.0485
+          cycleTime  = 5.0485
+          maxEriLoad = 5.924877
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.67999931
+          SI_time = sqrt(SI2_time) = 1.918332429   SI2_time = 3.67999931
+          SI_eri  = sqrt(SI2_eri)  = 2.458683298   SI2_eri  = 6.045123561
+
+  w_time = 1   w_eri = 0
+  scenario_tag = wt=1.00 we=0.00 cut=0.5 pessimistic
+  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.972  idle = 0.0765  util% = 98.484698425
+    ERI  = 4.957938  idle = 0.966939
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.5635  idle = 0.485  util% = 90.393186095
+    ERI  = 5.924877  idle = 0
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 5.0151  idle = 0.0334  util% = 99.338417352
+    ERI  = 4.737442  idle = 1.187435
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.8052  idle = 0.2433  util% = 95.180746756
+    ERI  = 4.875458  idle = 1.049419
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 5.0485  idle = 8.881784197e-16  util% = 100
+    ERI  = 5.818929  idle = 0.105948
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.2104  idle = 1.8381  util% = 63.591165693
+    ERI  = 4.316261  idle = 1.608616
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.164702387%
+  Total TN_m      : 27.6147
+  SI_time         : 1.918332429   (lower = more balanced time load)
+  SI_eri          : 2.458683298   (lower = more balanced ERI load)
+=======================================================================
+
+
+assembly_line_wt100_we000_cut10
+// solution (multi-objective optimal) with objective 4.9255
+SOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.9255
+
+=======================================================================
+ASSEMBLY LINE BALANCING — RESULTS
+=======================================================================
+
+OBJECTIVE VALUES (both computed for comparison):
+  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.9255
+          cycleTime  = 4.9255
+          maxEriLoad = 5.156521
+
+  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.50322581
+          SI_time = sqrt(SI2_time) = 1.871690629   SI2_time = 3.50322581
+          SI_eri  = sqrt(SI2_eri)  = 2.01350111   SI2_eri  = 4.054186718
+
+  w_time = 1   w_eri = 0
+  scenario_tag = wt=1.00 we=0.00 cut=1.0 midpoint
+  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)
+
+OPERATOR ASSIGNMENTS:
+-----------------------------------------------------------------------
+  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] 
+    TN_m = 4.8506  idle = 0.0749  util% = 98.479342199
+    ERI  = 4.361735  idle = 0.794786
+  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] 
+    TN_m = 4.452  idle = 0.4735  util% = 90.386762765
+    ERI  = 5.096494  idle = 0.060027
+  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] 
+    TN_m = 4.8926  idle = 0.0329  util% = 99.332047508
+    ERI  = 4.094556  idle = 1.061965
+  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] 
+    TN_m = 4.688  idle = 0.2375  util% = 95.178154502
+    ERI  = 4.303039  idle = 0.853482
+  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] 
+    TN_m = 4.9255  idle = -8.881784197e-16  util% = 100
+    ERI  = 5.156521  idle = 8.881784197e-16
+  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] 
+    TN_m = 3.1322  idle = 1.7933  util% = 63.591513552
+    ERI  = 3.906442  idle = 1.250079
+
+PERFORMANCE METRICS:
+-----------------------------------------------------------------------
+  Line Efficiency : 91.161303421%
+  Total TN_m      : 26.9409
+  SI_time         : 1.871690629   (lower = more balanced time load)
+  SI_eri          : 2.01350111   (lower = more balanced ERI load)
+=======================================================================
+
+

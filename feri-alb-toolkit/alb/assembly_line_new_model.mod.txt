@@ -84,6 +84,7 @@ float ERI_max = ...;  // max allowed maxEriLoad (C9 — active only for OBJ-2)
 
 execute SETTINGS {
     cplex.tilim = timeLimit;
+    cplex.epgap = 1e-6;   // relative optimality gap (CPLEX default: 1e-4)
 }
 
 // ---------------------------------------------------------------------------
@@ -147,11 +148,17 @@ dexpr float obj_SI = w_time * SI2_time + w_eri * SI2_eri;
 // OBJECTIVE — uncomment the one you want, comment out the other
 // ===========================================================================
 
-// --- OBJ-1: MinMax (minimise peak load) ---
-//minimize obj_MaxLoad;
+// --- OBJ-1: MinMax (minimise peak load) --- ACTIVE (objective used in the paper)
+// Lexicographic tie-break: obj_MaxLoad is optimised first and is never traded off; among
+// the solutions that attain its optimum, the peaks are pushed down as far as possible.
+// Without it, a peak whose weight is 0 (w_time = 0 or w_eri = 0) is free and the solver
+// returns an arbitrary value for it. If your OPL rejects staticLex, replace the line by
+// "minimize obj_MaxLoad;" and read the peaks from the operator loads instead.
+dexpr float obj_tie = cycleTime + maxEriLoad;
+minimize staticLex(obj_MaxLoad, obj_tie);
 
-// --- OBJ-2: Dual Smoothness Index (minimise workload imbalance) ---
- minimize obj_SI;
+// --- OBJ-2: Dual Smoothness Index (minimise workload imbalance) --- not used in the paper
+//minimize obj_SI;
 
 // ===========================================================================
 
@@ -212,12 +219,36 @@ subject to {
     // C8: Cycle time upper bound — required by OBJ-2 (Dual SI) to prevent the
     //     solver from stacking all tasks on one operator. Has no effect on OBJ-1
     //     (which already minimises cycleTime directly).
-    cycleTimeUB:
-        cycleTime <= CT_max;
+    // DISABLED for OBJ-1 (no caps in the paper's model). Re-enable only when using OBJ-2.
+    //cycleTimeUB:
+    //    cycleTime <= CT_max;
 
     // C9: ERI load upper bound — same role as C8 for the ergonomic dimension.
-    eriLoadUB:
-        maxEriLoad <= ERI_max;
+    //eriLoadUB:
+    //    maxEriLoad <= ERI_max;
+}
+
+// ---------------------------------------------------------------------------
+// Post-processing: solver status (to confirm that each run is proven optimal)
+// With the lexicographic objective, CPLEX returns cplexStatus 301 (multi-objective
+// optimal: every pass solved to optimality within cplex.epgap) and the MIP gap getter
+// has no meaning (it returns 2147483647). With a single objective (fallback line in the
+// OBJECTIVE section), the status is 1 (OPL) / 101 / 102 (raw MIP codes) and the relative
+// gap is checked (<= 1e-6). Anything else (e.g. 300 = multi-objective not optimal,
+// 107 = time limit with an incumbent) is reported as NOT proven optimal.
+// The objective is the pure OBJ-1 value, computed from the model expression (not the
+// solver's objective). analyze_cplex.py reads the "SOLVER STATUS:" line.
+// ---------------------------------------------------------------------------
+
+execute SOLVER_STATUS {
+    var st  = cplex.getCplexStatus();
+    var multi = (st == 301);
+    var gap = multi ? "n/a" : cplex.getMIPRelativeGap();
+    var isOpt = multi || ((st == 1 || st == 101 || st == 102) && gap <= 1e-6);
+    var lbl = isOpt ? "optimal" : "NOT proven optimal";
+    writeln("SOLVER STATUS: ", lbl, " (cplexStatus = ", st, ", relGap = ", gap,
+            ")   objective = ", w_time * cycleTime + w_eri * maxEriLoad);
+    writeln();
 }
 
 // ---------------------------------------------------------------------------
@@ -226,11 +257,19 @@ subject to {
 
 execute DISPLAY_RESULTS {
 
+    // Peaks that actually occur (equal to cycleTime / maxEriLoad whenever the tie-break is
+    // active; computed from the operator loads so the report never depends on a free variable)
+    var ctReal = 0; var erReal = 0;
+    for (var s = 1; s <= n_stations; s++) {
+        if (stationTime[s] > ctReal) ctReal = stationTime[s];
+        if (stationEri[s]  > erReal) erReal = stationEri[s];
+    }
+
     // Compute true SI values (sqrt form) for reporting
     var si2t = 0; var si2e = 0;
     for (var s = 1; s <= n_stations; s++) {
-        var dt = cycleTime  - stationTime[s];
-        var de = maxEriLoad - stationEri[s];
+        var dt = ctReal - stationTime[s];
+        var de = erReal - stationEri[s];
         si2t += dt * dt;
         si2e += de * de;
     }
@@ -243,9 +282,9 @@ execute DISPLAY_RESULTS {
     writeln();
     writeln("OBJECTIVE VALUES (both computed for comparison):");
     writeln("  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = ",
-            w_time * cycleTime + w_eri * maxEriLoad);
-    writeln("          cycleTime  = ", cycleTime);
-    writeln("          maxEriLoad = ", maxEriLoad);
+            w_time * ctReal + w_eri * erReal);
+    writeln("          cycleTime  = ", ctReal);
+    writeln("          maxEriLoad = ", erReal);
     writeln();
     writeln("  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = ",
             w_time * SI2_time + w_eri * SI2_eri);
@@ -256,7 +295,7 @@ execute DISPLAY_RESULTS {
     writeln();
     writeln("  w_time = ", w_time, "   w_eri = ", w_eri);
     writeln("  scenario_tag = ", scenario_tag);
-    writeln("  CT_max = ", CT_max, "   ERI_max = ", ERI_max, "  (caps active for OBJ-2)");
+    writeln("  CT_max = ", CT_max, "   ERI_max = ", ERI_max, "  (caps NOT applied as constraints: OBJ-1 run)");
     writeln();
 
     writeln("OPERATOR ASSIGNMENTS:");
@@ -281,16 +320,16 @@ execute DISPLAY_RESULTS {
         if (!hasAny) write("(idle)");
         writeln();
         writeln("    TN_m = ", opTime,
-                "  idle = ", (cycleTime - opTime),
-                "  util% = ", (cycleTime > 0 ? opTime / cycleTime * 100 : 0));
+                "  idle = ", (ctReal - opTime),
+                "  util% = ", (ctReal > 0 ? opTime / ctReal * 100 : 0));
         writeln("    ERI  = ", opEri,
-                "  idle = ", (maxEriLoad - opEri));
+                "  idle = ", (erReal - opEri));
     }
     writeln();
 
     writeln("PERFORMANCE METRICS:");
     writeln("-----------------------------------------------------------------------");
-    writeln("  Line Efficiency : ", (totalTime / (n_stations * cycleTime) * 100), "%");
+    writeln("  Line Efficiency : ", (totalTime / (n_stations * ctReal) * 100), "%");
     writeln("  Total TN_m      : ", totalTime);
     writeln("  SI_time         : ", si_time, "   (lower = more balanced time load)");
     writeln("  SI_eri          : ", si_eri,  "   (lower = more balanced ERI load)");

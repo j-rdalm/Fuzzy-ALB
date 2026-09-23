@@ -92,6 +92,8 @@ def _parse_run_name(run_name: str):
     cut_map = {'00': 0.0, '05': 0.5, '10': 1.0}
     cut = cut_map.get(cut_code, int(cut_code) / 10.0)
     scenario = m.group('scenario').lower() if m.group('scenario') else None
+    if scenario is None and cut == 1.0:
+        scenario = 'midpoint'   # alpha = 1: single midpoint instance (no scenario suffix in the file name)
     return wt, we, cut, scenario
 
 def split_blocks(text: str):
@@ -142,7 +144,11 @@ def parse_block(run_lbl: str, text: str) -> dict:
         d["w_time"], d["w_eri"], d["cut"], d["scenario"] = _parse_run_name(run_lbl)
 
     # ── Solver status and objective
-    m = re.search(r'solution \(([^)]+)\) with objective (' + NUM + r')', text)
+    # The model's own "SOLVER STATUS:" line (proven optimal within gap 1e-6, or not) takes
+    # precedence over OPL's built-in "// solution (...)" line, which does not check the gap.
+    m = re.search(r'SOLVER STATUS:\s*([^(\n]+?)\s*\(cplexStatus[^)]*\)\s*objective\s*=\s*(' + NUM + r')', text)
+    if not m:
+        m = re.search(r'solution \(([^)]+)\) with objective (' + NUM + r')', text)
     d["status"]     = m.group(1) if m else "—"
     d["solver_obj"] = float(m.group(2)) if m else None
 
@@ -424,14 +430,21 @@ def plot_pareto_scatter(df, path):
 
     for ax, obj in zip(axes, obj_types):
         sub = df[(df["obj_type"] == obj)].dropna(subset=["cycleTime", "maxEriLoad"])
-        for _, row in sub.iterrows():
-            wt = row.get("w_time")
-            sc = row.get("scenario", "midpoint")
-            color  = WT_PALETTE.get(round(wt, 2) if wt is not None else -1, "grey")
-            marker = SC_MARKER.get(sc, "o")
-            ax.scatter(row["cycleTime"], row["maxEriLoad"],
-                       c=color, marker=marker, s=90, zorder=4,
-                       edgecolors="black", linewidth=0.6)
+        # Runs that reach exactly the same (CT, max ERI) point are drawn as nested markers of
+        # decreasing size (largest = first run of the group, smallest on top), so that every
+        # run stays visible instead of being hidden behind the last one drawn.
+        rows = sub.assign(_k=list(zip(sub["cycleTime"].round(4), sub["maxEriLoad"].round(4))))
+        for _, grp in rows.groupby("_k", sort=False):
+            grp = grp.sort_values("w_time", ascending=True)
+            n = len(grp)
+            for j, (_, row) in enumerate(grp.iterrows()):
+                wt = row.get("w_time")
+                sc = row.get("scenario", "midpoint")
+                color  = WT_PALETTE.get(round(wt, 2) if wt is not None else -1, "grey")
+                marker = SC_MARKER.get(sc, "o")
+                ax.scatter(row["cycleTime"], row["maxEriLoad"],
+                           c=color, marker=marker, s=90 + 200 * (n - 1 - j), zorder=4 + j,
+                           edgecolors="black", linewidth=0.6)
         ax.set_xlabel("Cycle Time (CT)", fontsize=9)
         ax.set_ylabel("Max FERI",    fontsize=9)
         ax.set_title(obj, fontsize=10, fontweight="bold")
@@ -446,6 +459,8 @@ def plot_pareto_scatter(df, path):
     fig.legend(handles=wt_legend + sc_legend, loc="lower center",
                ncol=len(wt_legend) + len(sc_legend), fontsize=8,
                bbox_to_anchor=(0.5, -0.05))
+    fig.text(0.5, 0.925, "Runs with identical (CT, max FERI) are drawn as nested markers",
+             ha="center", fontsize=8, style="italic", color="dimgrey")
     fig.tight_layout()
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)

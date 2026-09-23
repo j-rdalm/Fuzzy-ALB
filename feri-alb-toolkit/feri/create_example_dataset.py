@@ -21,6 +21,7 @@ import math
 import random
 import io
 import warnings
+from pathlib import Path
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -39,7 +40,7 @@ from openpyxl.drawing.image import Image as XLImage
 N_TASKS    = 200       #total tasks  (e.g. 20, 50, 70, 100)
 N_STATIONS = 10        #number of workstations
 SEED       = 42       #reproducibility
-OUT        = "/Users/joanaalmeida/Library/CloudStorage/OneDrive-UniversidadedeAveiro/Universidade/Doutoramento EGI/Doutoramento/Dissertation-phd/Fuzzy ALB/files/example_dataset.xlsx"
+OUT        = Path(__file__).parent / "example_dataset.xlsx"
 # ─────────────────────────────────────────────────────────────
 # 1. Task name fragments (combinable for variety)
 # ─────────────────────────────────────────────────────────────

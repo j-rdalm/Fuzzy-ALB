@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ergo-ALB Results</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#EFF1EE;
+    --surface:#FFFFFF;
+    --surface-2:#E6E8E3;
+    --border:#D6D8D2;
+    --text-primary:#14181A;
+    --text-secondary:#565C5E;
+    --text-muted:#868C8C;
+    --accent:#2a78d6;
+    --accent-soft:#e4eefb;
+    --good:#0ca30c; --good-text:#006300; --good-soft:#e2f5e0;
+    --critical:#d03b3b; --critical-soft:#fae1e1;
+    --grid:rgba(20,24,26,0.09);
+    --shadow: 0 1px 2px rgba(20,24,26,.06), 0 8px 20px -8px rgba(20,24,26,.12);
+    --radius: 10px;
+    /* operators: categorical slots 1-6, validated in adjacent order */
+    --op1:#2a78d6; --op2:#eb6834; --op3:#1baf7a; --op4:#eda100; --op5:#e87ba4; --op6:#008300;
+    /* instance type: ordinal one-hue ramp (optimistic -> pessimistic) */
+    --sc-optimistic:#6da7ec; --sc-midpoint:#2a78d6; --sc-pessimistic:#184f95;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#14181B; --surface:#1B2024; --surface-2:#21272B; --border:#2C333A;
+      --text-primary:#EEF0EC; --text-secondary:#AAB1B3; --text-muted:#767D80;
+      --accent:#5b9ce8; --accent-soft:#1c2c3f;
+      --good:#3fc23f; --good-text:#3fc23f; --good-soft:#132a13;
+      --critical:#e66767; --critical-soft:#3a1a1a;
+      --grid:rgba(255,255,255,0.08);
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+      --op1:#3987e5; --op2:#d95926; --op3:#199e70; --op4:#c98500; --op5:#d55181; --op6:#008300;
+      --sc-optimistic:#86b6ef; --sc-midpoint:#5598e7; --sc-pessimistic:#256abf;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#14181B; --surface:#1B2024; --surface-2:#21272B; --border:#2C333A;
+    --text-primary:#EEF0EC; --text-secondary:#AAB1B3; --text-muted:#767D80;
+    --accent:#5b9ce8; --accent-soft:#1c2c3f;
+    --good:#3fc23f; --good-text:#3fc23f; --good-soft:#132a13;
+    --critical:#e66767; --critical-soft:#3a1a1a;
+    --grid:rgba(255,255,255,0.08);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+    --op1:#3987e5; --op2:#d95926; --op3:#199e70; --op4:#c98500; --op5:#d55181; --op6:#008300;
+    --sc-optimistic:#86b6ef; --sc-midpoint:#5598e7; --sc-pessimistic:#256abf;
+  }
+
+  *{box-sizing:border-box;}
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--bg); color:var(--text-primary);
+    font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  }
+  code{ overflow-wrap:anywhere; font-family:"IBM Plex Mono", ui-monospace, monospace; background:var(--surface-2); padding:1px 5px; border-radius:4px; font-size:11px; }
+  a{ color:var(--accent); }
+  .wrap{ max-width:1180px; margin:0 auto; padding: 0 20px 64px; min-width:0; }
+
+  header.top{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    background:var(--bg); border-bottom:1px solid var(--border);
+    padding-top: calc(env(safe-area-inset-top,0px) + 18px);
+  }
+  .top-inner{ max-width:1180px; margin:0 auto; padding: 0 20px 16px; display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between;}
+  .brand{ display:flex; flex-direction:column; gap:4px; min-width:240px; }
+  .eyebrow{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; }
+  h1{ margin:0; font-size:26px; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  .sub{ margin:0; color:var(--text-secondary); font-size:13.5px; max-width:74ch; }
+  .nav{ display:flex; gap:6px; }
+  .nav a{ font-size:12.5px; text-decoration:none; color:var(--text-secondary); padding:6px 11px; border:1px solid var(--border); border-radius:999px; background:var(--surface); }
+  .nav a:hover{ color:var(--text-primary); border-color:var(--accent); }
+
+  main > section, main > footer{ min-width:0; }
+  main{ min-width:0; padding-top:24px; display:flex; flex-direction:column; gap:32px; }
+
+  .importer{
+    display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow);
+  }
+  .importer .status{ font-size:12.5px; color:var(--text-secondary); flex:1 1 260px; min-width:200px; }
+  .importer .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-primary);
+    font-size:12.5px; font-weight:500; cursor:pointer; font-family:inherit; line-height:1.2;
+  }
+  .btn:hover{ filter:brightness(0.97); }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  input[type="file"]{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+  .import-hint{ width:100%; margin:0; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
+  .import-error{ width:100%; margin:0; font-size:12px; color:var(--critical); background:var(--critical-soft); padding:8px 10px; border-radius:8px; }
+
+  .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+  .kpi{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; min-width:0;
+  }
+  .kpi .label{ font-size:11.5px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.06em; }
+  .kpi .value{ font-size:26px; font-weight:600; }
+  .kpi .value small{ font-size:13px; font-weight:500; color:var(--text-secondary); }
+  .kpi .foot{ font-size:11.5px; color:var(--text-muted); }
+  .kpi .foot.ok{ color:var(--good-text); font-weight:500; }
+  .kpi .foot.bad{ color:var(--critical); font-weight:500; }
+
+  section{ display:flex; flex-direction:column; gap:14px; scroll-margin-top:120px; }
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .section-head h2{ margin:0; font-size:16px; font-weight:600; }
+  .section-head p{ margin:0; font-size:12.5px; color:var(--text-muted); }
+
+  .chart-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  @media (max-width:860px){ .chart-grid{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px 14px; box-shadow:var(--shadow); position:relative; min-width:0;
+  }
+  .card h3{ margin:0 0 2px; font-size:13.5px; font-weight:600; }
+  .card .cap{ margin:0 0 12px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
+  .card .note{ margin:10px 0 0; font-size:11.5px; color:var(--text-secondary); line-height:1.5; }
+  .card.wide{ grid-column: 1 / -1; }
+  .scroll-x{ overflow-x:auto; }
+  .scroll-x > .minw{ min-width:760px; }
+
+  svg.chart{ display:block; width:100%; height:auto; overflow:visible; }
+  svg.chart text{ font-family:"IBM Plex Mono", monospace; }
+  .axis-label{ fill:var(--text-muted); font-size:9.5px; }
+  .axis-title{ fill:var(--text-secondary); font-size:10px; font-family:"IBM Plex Sans", sans-serif !important; }
+  .grid-line{ stroke:var(--grid); stroke-width:1; }
+  .cat-label{ fill:var(--text-primary); font-size:10.5px; font-family:"IBM Plex Sans", sans-serif !important; }
+  .cat-sub{ fill:var(--text-muted); font-size:9.5px; font-family:"IBM Plex Sans", sans-serif !important; }
+  .val-label{ fill:var(--text-secondary); font-size:10px; }
+  .hit{ fill:transparent; }
+  .clickable{ cursor:pointer; }
+  .focusable:focus{ outline:none; }
+  .focusable:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-secondary); }
+  .legend-item svg{ flex:none; }
+  .scale{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:11px; color:var(--text-secondary); }
+  .scale svg{ flex:none; }
+
+  .tooltip{
+    position:fixed; pointer-events:none; z-index:60; background:var(--text-primary); color:var(--bg);
+    font-size:11.5px; line-height:1.45; padding:8px 11px; border-radius:6px; box-shadow:var(--shadow);
+    max-width:290px; opacity:0; transform:translate(-50%,-100%); transition:opacity .08s ease;
+  }
+  .tooltip.show{ opacity:1; }
+  .tooltip .tt-title{ font-weight:600; margin-bottom:3px; }
+  .tooltip .tt-row{ display:flex; align-items:center; gap:7px; white-space:nowrap; }
+  .tooltip .tt-key{ width:12px; height:0; border-top:3px solid; border-radius:2px; flex:none; }
+  .tooltip .tt-val{ font-family:"IBM Plex Mono", monospace; font-weight:600; }
+  .tooltip .tt-lab{ opacity:.78; }
+  .tooltip .tt-foot{ opacity:.7; margin-top:3px; }
+
+  .filters{
+    display:flex; flex-wrap:wrap; gap:10px 22px; align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 14px; box-shadow:var(--shadow);
+  }
+  .filter-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .filter-group .flabel{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); }
+  .chip-group{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{
+    display:flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface-2);
+    padding:6px 11px; border-radius:999px; font-size:12px; cursor:pointer; user-select:none; color:var(--text-secondary);
+    font-family:inherit;
+  }
+  .chip:hover{ color:var(--text-primary); }
+  .chip[aria-pressed="true"]{ background:var(--accent-soft); border-color:var(--accent); color:var(--text-primary); font-weight:500; }
+  .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .summary{
+    display:flex; flex-wrap:wrap; gap:6px 18px; align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 16px; box-shadow:var(--shadow); font-size:13px;
+  }
+  .summary{ min-width:0; }
+  .summary .title{ font-weight:600; }
+  .summary .stat{ color:var(--text-secondary); font-size:12.5px; }
+  .summary .stat b{ color:var(--text-primary); font-weight:600; font-family:"IBM Plex Mono", monospace; }
+  .badge{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .badge.ok{ background:var(--good-soft); color:var(--good-text); }
+  .badge.bad{ background:var(--critical-soft); color:var(--critical); }
+
+  .table-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  .table-scroll{ overflow-x:auto; max-height:640px; overflow-y:auto; }
+  table{ border-collapse:collapse; width:100%; min-width:760px; font-size:12.8px; }
+  thead th{
+    position:sticky; top:0; background:var(--surface-2); text-align:left; padding:9px 12px;
+    font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-secondary);
+    border-bottom:1px solid var(--border); white-space:nowrap; z-index:5;
+  }
+  thead th.nocase{ text-transform:none; letter-spacing:0; }
+  thead th.sortable{ cursor:pointer; }
+  thead th.sortable:hover{ color:var(--text-primary); }
+  thead th.sorted::after{ content:attr(data-arrow); margin-left:5px; color:var(--accent); }
+  thead th.r, td.num{ text-align:right; }
+  tbody td{ padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:hover{ background:var(--surface-2); }
+  tbody tr.sel{ background:var(--accent-soft); }
+  tbody tr.clickrow{ cursor:pointer; }
+  td.num{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .opdot{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:7px; vertical-align:-1px; }
+  .meter{ display:inline-block; width:70px; height:8px; border-radius:4px; background:var(--surface-2); vertical-align:middle; margin-right:8px; overflow:hidden; }
+  .meter span{ display:block; height:100%; border-radius:4px; }
+
+  footer{ margin-top:8px; font-size:11.5px; color:var(--text-muted); text-align:center; line-height:1.6; }
+
+  @media (max-width:520px){ h1{ font-size:21px; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="eyebrow">Ergo-ALB &middot; CPLEX results</div>
+      <h1>Ergonomic assembly line balancing results</h1>
+      <p class="sub">Explore the solved MILP instances: objective, cycle time, ergonomic peak, line efficiency and how the tasks are distributed across operators. Shown here with the output of the example run &mdash; import your own <code>outputCPLEX.txt</code> below to inspect a different study.</p>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#overview">Overview</a><a href="#explorer">Run explorer</a><a href="#allruns">All runs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+
+  <section id="importer">
+    <div class="importer">
+      <span class="status" id="datasetStatus">Loading&hellip;</span>
+      <div class="actions">
+        <label class="btn primary" for="fileInput">Import CPLEX output (.txt)</label>
+        <input type="file" id="fileInput" accept=".txt,.log,.out,text/plain">
+        <button class="btn" id="resetSample" type="button">Reset to example</button>
+      </div>
+      <p class="import-hint">Expected format: the console output of every run concatenated into one text file, each block headed by a line with only the run name (the <code>.dat</code> file name without extension, e.g. <code>assembly_line_wt050_we050_cut05_optimistic</code>), as produced by the loop in the README. The file is parsed in your browser and never uploaded.</p>
+      <p class="import-error" id="importError" hidden></p>
+    </div>
+  </section>
+
+  <section id="overview">
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="section-head">
+      <h2>Overview of all runs</h2>
+      <p id="selHint"></p>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h3>Optimal objective by weight pair</h3>
+        <p class="cap">z* = w<sub>t</sub>&middot;CT + w<sub>e</sub>&middot;EL. Bands are the &alpha;-cut intervals [z<sup>l</sup>, z<sup>u</sup>] between the optimistic and pessimistic instances; the line is the &alpha;=1 midpoint instance.</p>
+        <div id="chartBand"></div>
+        <div class="legend" id="bandLegend"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:baseline;">
+          <h3 id="heatTitle">Line efficiency</h3>
+        </div>
+        <p class="cap" id="heatCap"></p>
+        <div class="chip-group" id="metricChips" role="group" aria-label="Metric" style="margin-bottom:10px"></div>
+        <div id="chartHeat"></div>
+        <div class="scale" id="heatScale"></div>
+        <p class="note" id="heatNote"></p>
+      </div>
+
+      <div class="card">
+        <h3>Cycle time vs. ergonomic peak</h3>
+        <p class="cap">One marker per distinct (CT, EL) outcome. A number beside a marker is the count of runs that reach exactly that point.</p>
+        <div id="chartScatter"></div>
+        <div class="legend" id="scatterLegend"></div>
+        <p class="note">CT at w<sub>t</sub>=0 and EL at w<sub>t</sub>=1 are tie-break values (the smallest peak among assignments that already reach the optimum), not optimized quantities.</p>
+      </div>
+
+      <div class="card">
+        <h3>Operator load balance across runs</h3>
+        <p class="cap">Time load (TN<sub>m</sub>) of each operator as a share of that run&rsquo;s cycle time. 100% = the bottleneck operator; lower values are idle capacity. Rows are runs in the same order as the map below.</p>
+        <div id="chartUtil"></div>
+        <div class="legend" id="utilLegend"></div>
+      </div>
+
+      <div class="card wide">
+        <h3>Task-to-operator assignment across runs</h3>
+        <p class="cap">Each row is one run, each column one task in line order (workstation numbers on top), colour = operator. Letters on the right mark identical assignments. Click a row to open it in the run explorer.</p>
+        <div class="scroll-x"><div class="minw" id="chartMap"></div></div>
+        <div class="legend" id="mapLegend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="explorer">
+    <div class="section-head">
+      <h2>Run explorer</h2>
+      <p>Pick a weight pair and an instance</p>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group"><span class="flabel">Weights w<sub>t</sub> / w<sub>e</sub></span><div class="chip-group" id="wtChips" role="group" aria-label="Weight pair"></div></div>
+      <div class="filter-group"><span class="flabel">Instance</span><div class="chip-group" id="instChips" role="group" aria-label="Instance"></div></div>
+    </div>
+
+    <div class="summary" id="summary"></div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h3>Time load per operator</h3>
+        <p class="cap">TN<sub>m</sub> against the cycle time (line). The shaded track is the operator&rsquo;s capacity up to CT; the gap is idle time.</p>
+        <div id="chartLoadT"></div>
+      </div>
+      <div class="card">
+        <h3>Ergonomic load per operator</h3>
+        <p class="cap">Sum of task FERI per operator against the peak EL (line). Bars are on a common scale across all runs so runs can be compared.</p>
+        <div id="chartLoadE"></div>
+      </div>
+      <div class="card wide">
+        <h3>Line layout</h3>
+        <p class="cap">One row per operator; each coloured cell is a task, in line order. An operator whose tasks are not contiguous shows gaps.</p>
+        <div class="scroll-x"><div class="minw" id="chartLayout"></div></div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table id="opTable">
+          <thead><tr>
+            <th>Operator</th><th>Workstations</th><th class="r">Tasks</th><th class="r">Time load TN<sub>m</sub></th>
+            <th class="r">Idle time</th><th>Utilisation</th><th class="r">ERI load</th><th class="r">ERI headroom</th>
+          </tr></thead>
+          <tbody id="opBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="allruns">
+    <div class="section-head">
+      <h2>All runs</h2>
+      <p>Click a column to sort, click a row to open it in the explorer</p>
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table id="runTable">
+          <thead><tr id="runHead"></tr></thead>
+          <tbody id="runBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Model: minimise w<sub>t</sub>&middot;CT + w<sub>e</sub>&middot;EL over task-to-operator assignments (lexicographic tie-break on CT + EL), one run per weight pair &times; &alpha;-cut instance.
+    Line efficiency = total task time / (operators &times; CT), computed with each instance&rsquo;s own task times, so compare it within an instance type.
+  </footer>
+
+</main>
+</div>
+
+<div class="tooltip" id="tooltip" role="status"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SAMPLE_TEXT = "assembly_line_wt000_we100_cut00_optimistic\n// solution (multi-objective optimal) with objective 3.582861\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 3.582861\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 3.582861\n          cycleTime  = 5.8477\n          maxEriLoad = 3.582861\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 1.841674398\n          SI_time = sqrt(SI2_time) = 4.783689245   SI2_time = 22.88368279\n          SI_eri  = sqrt(SI2_eri)  = 1.357083047   SI2_eri  = 1.841674398\n\n  w_time = 0   w_eri = 1\n  scenario_tag = wt=0.00 we=1.00 cut=0.0 optimistic\n  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17, 18] \n    TN_m = 5.1683  idle = 0.6794  util% = 88.38175693\n    ERI  = 3.570541  idle = 0.01232\n  Operator 2: WS5[15, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[37, 38, 39, 40] \n    TN_m = 4.7402  idle = 1.1075  util% = 81.060929938\n    ERI  = 3.570289  idle = 0.012572\n  Operator 3: WS7[36] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52, 53, 54] WS12[55, 56, 57, 58, 59, 60, 61] \n    TN_m = 5.8477  idle = 0  util% = 100\n    ERI  = 3.582861  idle = 4.440892099e-16\n  Operator 4: WS12[62, 63, 64, 65] WS13[66, 67] WS14[70, 71] WS15[68, 69] \n    TN_m = 3.8076  idle = 2.0401  util% = 65.112779383\n    ERI  = 3.514108  idle = 0.068753\n  Operator 5: WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] WS19[83, 84] \n    TN_m = 3.7186  idle = 2.1291  util% = 63.590813482\n    ERI  = 2.543192  idle = 1.039669\n  Operator 6: WS19[85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 2.3121  idle = 3.5356  util% = 39.538622022\n    ERI  = 2.713536  idle = 0.869325\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 72.947483626%\n  Total TN_m      : 25.5945\n  SI_time         : 4.783689245   (lower = more balanced time load)\n  SI_eri          : 1.357083047   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt000_we100_cut00_pessimistic\n// solution (multi-objective optimal) with objective 6.275371\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 6.275371\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 6.275371\n          cycleTime  = 5.3847\n          maxEriLoad = 6.275371\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.431472625\n          SI_time = sqrt(SI2_time) = 2.431927102   SI2_time = 5.91426943\n          SI_eri  = sqrt(SI2_eri)  = 1.852423446   SI2_eri  = 3.431472625\n\n  w_time = 0   w_eri = 1\n  scenario_tag = wt=0.00 we=1.00 cut=0.0 pessimistic\n  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] \n    TN_m = 5.3847  idle = 0  util% = 100\n    ERI  = 5.826976  idle = 0.448395\n  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.2771  idle = 1.1076  util% = 79.430608948\n    ERI  = 6.251161  idle = 0.02421\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.2438  idle = 0.1409  util% = 97.383326833\n    ERI  = 5.609606  idle = 0.665765\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 5.1973  idle = 0.1874  util% = 96.519768975\n    ERI  = 5.653847  idle = 0.621524\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.8968  idle = 0.4879  util% = 90.939142385\n    ERI  = 6.275371  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2884  idle = 2.0963  util% = 61.069326053\n    ERI  = 4.726083  idle = 1.549288\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 87.557028866%\n  Total TN_m      : 28.2881\n  SI_time         : 2.431927102   (lower = more balanced time load)\n  SI_eri          : 1.852423446   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt000_we100_cut05_optimistic\n// solution (multi-objective optimal) with objective 4.31379\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.31379\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.31379\n          cycleTime  = 5.7357\n          maxEriLoad = 4.31379\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.156509925\n          SI_time = sqrt(SI2_time) = 4.267698281   SI2_time = 18.21324862\n          SI_eri  = sqrt(SI2_eri)  = 1.776656952   SI2_eri  = 3.156509925\n\n  w_time = 0   w_eri = 1\n  scenario_tag = wt=0.00 we=1.00 cut=0.5 optimistic\n  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[15, 16, 17, 18] \n    TN_m = 5.3083  idle = 0.4274  util% = 92.548424778\n    ERI  = 4.264582  idle = 0.049208\n  Operator 2: WS5[14, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[37, 38, 39] \n    TN_m = 4.7034  idle = 1.0323  util% = 82.002196768\n    ERI  = 4.299746  idle = 0.014044\n  Operator 3: WS7[36, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52, 53, 54] WS12[55, 56, 57, 58, 59, 60] \n    TN_m = 5.7357  idle = -8.881784197e-16  util% = 100\n    ERI  = 4.31379  idle = 0\n  Operator 4: WS12[61, 62, 63, 64, 65] WS13[66, 67] WS14[70, 71] WS15[68, 69] \n    TN_m = 4.331  idle = 1.4047  util% = 75.509528044\n    ERI  = 4.207661  idle = 0.106129\n  Operator 5: WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] WS19[83, 84] \n    TN_m = 3.8165  idle = 1.9192  util% = 66.539393622\n    ERI  = 3.080998  idle = 1.232792\n  Operator 6: WS19[85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 2.3729  idle = 3.3628  util% = 41.370713252\n    ERI  = 3.039878  idle = 1.273912\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 76.328376077%\n  Total TN_m      : 26.2678\n  SI_time         : 4.267698281   (lower = more balanced time load)\n  SI_eri          : 1.776656952   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt000_we100_cut05_pessimistic\n// solution (multi-objective optimal) with objective 5.651708\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.651708\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.651708\n          cycleTime  = 5.2565\n          maxEriLoad = 5.651708\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.912757497\n          SI_time = sqrt(SI2_time) = 2.373727724   SI2_time = 5.63458331\n          SI_eri  = sqrt(SI2_eri)  = 1.706680256   SI2_eri  = 2.912757497\n\n  w_time = 0   w_eri = 1\n  scenario_tag = wt=0.00 we=1.00 cut=0.5 pessimistic\n  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] \n    TN_m = 5.2565  idle = 0  util% = 100\n    ERI  = 5.191476  idle = 0.460232\n  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.1754  idle = 1.0811  util% = 79.43308285\n    ERI  = 5.500848  idle = 0.15086\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.1187  idle = 0.1378  util% = 97.378483782\n    ERI  = 4.927933  idle = 0.723775\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 5.0734  idle = 0.1831  util% = 96.516693617\n    ERI  = 5.042679  idle = 0.609029\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.7803  idle = 0.4762  util% = 90.940740036\n    ERI  = 5.651708  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2104  idle = 2.0461  util% = 61.074859698\n    ERI  = 4.316261  idle = 1.335447\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 87.557309997%\n  Total TN_m      : 27.6147\n  SI_time         : 2.373727724   (lower = more balanced time load)\n  SI_eri          : 1.706680256   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt000_we100_cut10\n// solution (multi-objective optimal) with objective 5.028046\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.028046\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.028046\n          cycleTime  = 4.9937\n          maxEriLoad = 5.028046\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.675926044\n          SI_time = sqrt(SI2_time) = 2.002403983   SI2_time = 4.00962171\n          SI_eri  = sqrt(SI2_eri)  = 1.635825799   SI2_eri  = 2.675926044\n\n  w_time = 0   w_eri = 1\n  scenario_tag = wt=0.00 we=1.00 cut=1.0 midpoint\n  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.8506  idle = 0.1431  util% = 97.134389331\n    ERI  = 4.361735  idle = 0.666311\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.3509  idle = 0.6428  util% = 87.127781004\n    ERI  = 4.944782  idle = 0.083264\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.9937  idle = -8.881784197e-16  util% = 100\n    ERI  = 4.246268  idle = 0.781778\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.9497  idle = 0.044  util% = 99.118889801\n    ERI  = 4.431514  idle = 0.596532\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.6638  idle = 0.3299  util% = 93.393676032\n    ERI  = 5.028046  idle = 8.881784197e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.1322  idle = 1.8615  util% = 62.723031019\n    ERI  = 3.906442  idle = 1.121604\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 89.916294531%\n  Total TN_m      : 26.9409\n  SI_time         : 2.002403983   (lower = more balanced time load)\n  SI_eri          : 1.635825799   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt025_we075_cut00_optimistic\n// solution (multi-objective optimal) with objective 4.01114375\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.01114375\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.01114375\n          cycleTime  = 4.7024\n          maxEriLoad = 3.780725\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.739675843\n          SI_time = sqrt(SI2_time) = 1.801709974   SI2_time = 3.24615883\n          SI_eri  = sqrt(SI2_eri)  = 1.603386473   SI2_eri  = 2.570848181\n\n  w_time = 0.25   w_eri = 0.75\n  scenario_tag = wt=0.25 we=0.75 cut=0.0 optimistic\n  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] \n    TN_m = 4.3047  idle = 0.3977  util% = 91.542616536\n    ERI  = 2.877659  idle = 0.903066\n  Operator 2: WS5[14, 15, 16, 17, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.5331  idle = 0.1693  util% = 96.399710786\n    ERI  = 3.73139  idle = 0.049335\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.6483  idle = 0.0541  util% = 98.849523647\n    ERI  = 2.808773  idle = 0.971952\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.7024  idle = 0  util% = 100\n    ERI  = 3.209179  idle = 0.571546\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.4306  idle = 0.2718  util% = 94.21997278\n    ERI  = 3.780725  idle = -4.440892099e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 2.9754  idle = 1.727  util% = 63.274072814\n    ERI  = 3.086801  idle = 0.693924\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 90.714316094%\n  Total TN_m      : 25.5945\n  SI_time         : 1.801709974   (lower = more balanced time load)\n  SI_eri          : 1.603386473   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt025_we075_cut00_pessimistic\n// solution (multi-objective optimal) with objective 6.05270325\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 6.05270325\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 6.05270325\n          cycleTime  = 5.3847\n          maxEriLoad = 6.275371\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.052171826\n          SI_time = sqrt(SI2_time) = 2.431927102   SI2_time = 5.91426943\n          SI_eri  = sqrt(SI2_eri)  = 1.852423446   SI2_eri  = 3.431472625\n\n  w_time = 0.25   w_eri = 0.75\n  scenario_tag = wt=0.25 we=0.75 cut=0.0 pessimistic\n  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] \n    TN_m = 5.3847  idle = 0  util% = 100\n    ERI  = 5.826976  idle = 0.448395\n  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.2771  idle = 1.1076  util% = 79.430608948\n    ERI  = 6.251161  idle = 0.02421\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.2438  idle = 0.1409  util% = 97.383326833\n    ERI  = 5.609606  idle = 0.665765\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 5.1973  idle = 0.1874  util% = 96.519768975\n    ERI  = 5.653847  idle = 0.621524\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.8968  idle = 0.4879  util% = 90.939142385\n    ERI  = 6.275371  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2884  idle = 2.0963  util% = 61.069326053\n    ERI  = 4.726083  idle = 1.549288\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 87.557028866%\n  Total TN_m      : 28.2881\n  SI_time         : 2.431927102   (lower = more balanced time load)\n  SI_eri          : 1.852423446   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt025_we075_cut05_optimistic\n// solution (multi-objective optimal) with objective 4.50981375\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.50981375\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.50981375\n          cycleTime  = 4.8261\n          maxEriLoad = 4.404385\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.74148558\n          SI_time = sqrt(SI2_time) = 1.862088945   SI2_time = 3.46737524\n          SI_eri  = sqrt(SI2_eri)  = 1.58098778   SI2_eri  = 2.49952236\n\n  w_time = 0.25   w_eri = 0.75\n  scenario_tag = wt=0.25 we=0.75 cut=0.5 optimistic\n  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.7296  idle = 0.0965  util% = 98.000455855\n    ERI  = 3.765529  idle = 0.638856\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.3409  idle = 0.4852  util% = 89.946333478\n    ERI  = 4.268111  idle = 0.136274\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.7704  idle = 0.0557  util% = 98.845858975\n    ERI  = 3.451665  idle = 0.95272\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.8261  idle = 0  util% = 100\n    ERI  = 3.820344  idle = 0.584041\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.5472  idle = 0.2789  util% = 94.22100661\n    ERI  = 4.404385  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.0536  idle = 1.7725  util% = 63.272621786\n    ERI  = 3.496621  idle = 0.907764\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 90.714379451%\n  Total TN_m      : 26.2678\n  SI_time         : 1.862088945   (lower = more balanced time load)\n  SI_eri          : 1.58098778   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt025_we075_cut05_pessimistic\n// solution (multi-objective optimal) with objective 5.552906\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.552906\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.552906\n          cycleTime  = 5.2565\n          maxEriLoad = 5.651708\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.59321395\n          SI_time = sqrt(SI2_time) = 2.373727724   SI2_time = 5.63458331\n          SI_eri  = sqrt(SI2_eri)  = 1.706680256   SI2_eri  = 2.912757497\n\n  w_time = 0.25   w_eri = 0.75\n  scenario_tag = wt=0.25 we=0.75 cut=0.5 pessimistic\n  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] \n    TN_m = 5.2565  idle = 0  util% = 100\n    ERI  = 5.191476  idle = 0.460232\n  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.1754  idle = 1.0811  util% = 79.43308285\n    ERI  = 5.500848  idle = 0.15086\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.1187  idle = 0.1378  util% = 97.378483782\n    ERI  = 4.927933  idle = 0.723775\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 5.0734  idle = 0.1831  util% = 96.516693617\n    ERI  = 5.042679  idle = 0.609029\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.7803  idle = 0.4762  util% = 90.940740036\n    ERI  = 5.651708  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2104  idle = 2.0461  util% = 61.074859698\n    ERI  = 4.316261  idle = 1.335447\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 87.557309997%\n  Total TN_m      : 27.6147\n  SI_time         : 2.373727724   (lower = more balanced time load)\n  SI_eri          : 1.706680256   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt025_we075_cut10\n// solution (multi-objective optimal) with objective 5.0194595\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.0194595\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.0194595\n          cycleTime  = 4.9937\n          maxEriLoad = 5.028046\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.00934996\n          SI_time = sqrt(SI2_time) = 2.002403983   SI2_time = 4.00962171\n          SI_eri  = sqrt(SI2_eri)  = 1.635825799   SI2_eri  = 2.675926044\n\n  w_time = 0.25   w_eri = 0.75\n  scenario_tag = wt=0.25 we=0.75 cut=1.0 midpoint\n  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.8506  idle = 0.1431  util% = 97.134389331\n    ERI  = 4.361735  idle = 0.666311\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.3509  idle = 0.6428  util% = 87.127781004\n    ERI  = 4.944782  idle = 0.083264\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.9937  idle = -8.881784197e-16  util% = 100\n    ERI  = 4.246268  idle = 0.781778\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.9497  idle = 0.044  util% = 99.118889801\n    ERI  = 4.431514  idle = 0.596532\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.6638  idle = 0.3299  util% = 93.393676032\n    ERI  = 5.028046  idle = 8.881784197e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.1322  idle = 1.8615  util% = 62.723031019\n    ERI  = 3.906442  idle = 1.121604\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 89.916294531%\n  Total TN_m      : 26.9409\n  SI_time         : 2.002403983   (lower = more balanced time load)\n  SI_eri          : 1.635825799   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt050_we050_cut00_optimistic\n// solution (multi-objective optimal) with objective 4.2415625\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.2415625\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.2415625\n          cycleTime  = 4.7024\n          maxEriLoad = 3.780725\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.956547574\n          SI_time = sqrt(SI2_time) = 1.790173771   SI2_time = 3.20472213\n          SI_eri  = sqrt(SI2_eri)  = 1.645713529   SI2_eri  = 2.708373018\n\n  w_time = 0.5   w_eri = 0.5\n  scenario_tag = wt=0.50 we=0.50 cut=0.0 optimistic\n  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.6083  idle = 0.0941  util% = 97.998894182\n    ERI  = 3.169323  idle = 0.611402\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36, 37] \n    TN_m = 4.4216  idle = 0.2808  util% = 94.02858115\n    ERI  = 3.700637  idle = 0.080088\n  Operator 3: WS7[38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.4562  idle = 0.2462  util% = 94.764375638\n    ERI  = 2.547862  idle = 1.232863\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.7024  idle = 0  util% = 100\n    ERI  = 3.209179  idle = 0.571546\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.4306  idle = 0.2718  util% = 94.21997278\n    ERI  = 3.780725  idle = -4.440892099e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 2.9754  idle = 1.727  util% = 63.274072814\n    ERI  = 3.086801  idle = 0.693924\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 90.714316094%\n  Total TN_m      : 25.5945\n  SI_time         : 1.790173771   (lower = more balanced time load)\n  SI_eri          : 1.645713529   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt050_we050_cut00_pessimistic\n// solution (multi-objective optimal) with objective 5.8300355\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.8300355\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.8300355\n          cycleTime  = 5.3847\n          maxEriLoad = 6.275371\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.672871027\n          SI_time = sqrt(SI2_time) = 2.431927102   SI2_time = 5.91426943\n          SI_eri  = sqrt(SI2_eri)  = 1.852423446   SI2_eri  = 3.431472625\n\n  w_time = 0.5   w_eri = 0.5\n  scenario_tag = wt=0.50 we=0.50 cut=0.0 pessimistic\n  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14, 16, 17] \n    TN_m = 5.3847  idle = 0  util% = 100\n    ERI  = 5.826976  idle = 0.448395\n  Operator 2: WS5[15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.2771  idle = 1.1076  util% = 79.430608948\n    ERI  = 6.251161  idle = 0.02421\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.2438  idle = 0.1409  util% = 97.383326833\n    ERI  = 5.609606  idle = 0.665765\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 5.1973  idle = 0.1874  util% = 96.519768975\n    ERI  = 5.653847  idle = 0.621524\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.8968  idle = 0.4879  util% = 90.939142385\n    ERI  = 6.275371  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2884  idle = 2.0963  util% = 61.069326053\n    ERI  = 4.726083  idle = 1.549288\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 87.557028866%\n  Total TN_m      : 28.2881\n  SI_time         : 2.431927102   (lower = more balanced time load)\n  SI_eri          : 1.852423446   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt050_we050_cut05_optimistic\n// solution (multi-objective optimal) with objective 4.6152425\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.6152425\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.6152425\n          cycleTime  = 4.8261\n          maxEriLoad = 4.404385\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 2.9834488\n          SI_time = sqrt(SI2_time) = 1.862088945   SI2_time = 3.46737524\n          SI_eri  = sqrt(SI2_eri)  = 1.58098778   SI2_eri  = 2.49952236\n\n  w_time = 0.5   w_eri = 0.5\n  scenario_tag = wt=0.50 we=0.50 cut=0.5 optimistic\n  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.7296  idle = 0.0965  util% = 98.000455855\n    ERI  = 3.765529  idle = 0.638856\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.3409  idle = 0.4852  util% = 89.946333478\n    ERI  = 4.268111  idle = 0.136274\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.7704  idle = 0.0557  util% = 98.845858975\n    ERI  = 3.451665  idle = 0.95272\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.8261  idle = 0  util% = 100\n    ERI  = 3.820344  idle = 0.584041\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.5472  idle = 0.2789  util% = 94.22100661\n    ERI  = 4.404385  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.0536  idle = 1.7725  util% = 63.272621786\n    ERI  = 3.496621  idle = 0.907764\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 90.714379451%\n  Total TN_m      : 26.2678\n  SI_time         : 1.862088945   (lower = more balanced time load)\n  SI_eri          : 1.58098778   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt050_we050_cut05_pessimistic\n// solution (multi-objective optimal) with objective 5.426543\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.426543\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.426543\n          cycleTime  = 5.1187\n          maxEriLoad = 5.734386\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.981662275\n          SI_time = sqrt(SI2_time) = 2.052733268   SI2_time = 4.21371387\n          SI_eri  = sqrt(SI2_eri)  = 1.936391148   SI2_eri  = 3.749610679\n\n  w_time = 0.5   w_eri = 0.5\n  scenario_tag = wt=0.50 we=0.50 cut=0.5 pessimistic\n  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.972  idle = 0.1467  util% = 97.134037939\n    ERI  = 4.957938  idle = 0.776448\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.4599  idle = 0.6588  util% = 87.129544611\n    ERI  = 5.734386  idle = 0\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.1187  idle = 0  util% = 100\n    ERI  = 4.927933  idle = 0.806453\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 5.0734  idle = 0.0453  util% = 99.11500967\n    ERI  = 5.042679  idle = 0.691707\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.7803  idle = 0.3384  util% = 93.388946412\n    ERI  = 5.651708  idle = 0.082678\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2104  idle = 1.9083  util% = 62.719049759\n    ERI  = 4.316261  idle = 1.418125\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 89.914431399%\n  Total TN_m      : 27.6147\n  SI_time         : 2.052733268   (lower = more balanced time load)\n  SI_eri          : 1.936391148   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt050_we050_cut10\n// solution (multi-objective optimal) with objective 5.010873\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.010873\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.010873\n          cycleTime  = 4.9937\n          maxEriLoad = 5.028046\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.342773877\n          SI_time = sqrt(SI2_time) = 2.002403983   SI2_time = 4.00962171\n          SI_eri  = sqrt(SI2_eri)  = 1.635825799   SI2_eri  = 2.675926044\n\n  w_time = 0.5   w_eri = 0.5\n  scenario_tag = wt=0.50 we=0.50 cut=1.0 midpoint\n  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.8506  idle = 0.1431  util% = 97.134389331\n    ERI  = 4.361735  idle = 0.666311\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] \n    TN_m = 4.3509  idle = 0.6428  util% = 87.127781004\n    ERI  = 4.944782  idle = 0.083264\n  Operator 3: WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.9937  idle = -8.881784197e-16  util% = 100\n    ERI  = 4.246268  idle = 0.781778\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.9497  idle = 0.044  util% = 99.118889801\n    ERI  = 4.431514  idle = 0.596532\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.6638  idle = 0.3299  util% = 93.393676032\n    ERI  = 5.028046  idle = 8.881784197e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.1322  idle = 1.8615  util% = 62.723031019\n    ERI  = 3.906442  idle = 1.121604\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 89.916294531%\n  Total TN_m      : 26.9409\n  SI_time         : 2.002403983   (lower = more balanced time load)\n  SI_eri          : 1.635825799   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt075_we025_cut00_optimistic\n// solution (multi-objective optimal) with objective 4.46732675\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.46732675\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.46732675\n          cycleTime  = 4.6792\n          maxEriLoad = 3.831707\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.084312518\n          SI_time = sqrt(SI2_time) = 1.753525925   SI2_time = 3.07485317\n          SI_eri  = sqrt(SI2_eri)  = 1.764281883   SI2_eri  = 3.112690561\n\n  w_time = 0.75   w_eri = 0.25\n  scenario_tag = wt=0.75 we=0.25 cut=0.0 optimistic\n  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.6083  idle = 0.0709  util% = 98.484783724\n    ERI  = 3.169323  idle = 0.662384\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36, 37] \n    TN_m = 4.4216  idle = 0.2576  util% = 94.494785433\n    ERI  = 3.700637  idle = 0.13107\n  Operator 3: WS7[38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.4562  idle = 0.223  util% = 95.234228073\n    ERI  = 2.547862  idle = 1.283845\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.4538  idle = 0.2254  util% = 95.182937254\n    ERI  = 3.158197  idle = 0.67351\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.6792  idle = 0  util% = 100\n    ERI  = 3.831707  idle = -4.440892099e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 2.9754  idle = 1.7038  util% = 63.587792785\n    ERI  = 3.086801  idle = 0.744906\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.164087878%\n  Total TN_m      : 25.5945\n  SI_time         : 1.753525925   (lower = more balanced time load)\n  SI_eri          : 1.764281883   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt075_we025_cut00_pessimistic\n// solution (multi-objective optimal) with objective 5.52880975\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.52880975\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.52880975\n          cycleTime  = 5.2113\n          maxEriLoad = 6.481339\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.716709414\n          SI_time = sqrt(SI2_time) = 2.122178906   SI2_time = 4.50364331\n          SI_eri  = sqrt(SI2_eri)  = 2.314283415   SI2_eri  = 5.355907725\n\n  w_time = 0.75   w_eri = 0.25\n  scenario_tag = wt=0.75 we=0.25 cut=0.0 pessimistic\n  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 5.0933  idle = 0.118  util% = 97.735689751\n    ERI  = 5.554144  idle = 0.927195\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34] \n    TN_m = 4.3222  idle = 0.8891  util% = 82.938997947\n    ERI  = 6.233515  idle = 0.247824\n  Operator 3: WS6[35] WS7[36, 37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] \n    TN_m = 5.2013  idle = 0.01  util% = 99.808109301\n    ERI  = 5.515513  idle = 0.965826\n  Operator 4: WS11[52, 53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 5.2113  idle = 0  util% = 100\n    ERI  = 5.83245  idle = 0.648889\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 5.1716  idle = 0.0397  util% = 99.238193925\n    ERI  = 6.481339  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2884  idle = 1.9229  util% = 63.101337478\n    ERI  = 4.726083  idle = 1.755256\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 90.470388067%\n  Total TN_m      : 28.2881\n  SI_time         : 2.122178906   (lower = more balanced time load)\n  SI_eri          : 2.314283415   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt075_we025_cut05_optimistic\n// solution (multi-objective optimal) with objective 4.72067125\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.72067125\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.72067125\n          cycleTime  = 4.8261\n          maxEriLoad = 4.404385\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.22541202\n          SI_time = sqrt(SI2_time) = 1.862088945   SI2_time = 3.46737524\n          SI_eri  = sqrt(SI2_eri)  = 1.58098778   SI2_eri  = 2.49952236\n\n  w_time = 0.75   w_eri = 0.25\n  scenario_tag = wt=0.75 we=0.25 cut=0.5 optimistic\n  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.7296  idle = 0.0965  util% = 98.000455855\n    ERI  = 3.765529  idle = 0.638856\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.3409  idle = 0.4852  util% = 89.946333478\n    ERI  = 4.268111  idle = 0.136274\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.7704  idle = 0.0557  util% = 98.845858975\n    ERI  = 3.451665  idle = 0.95272\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66, 67] \n    TN_m = 4.8261  idle = 0  util% = 100\n    ERI  = 3.820344  idle = 0.584041\n  Operator 5: WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.5472  idle = 0.2789  util% = 94.22100661\n    ERI  = 4.404385  idle = 0\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.0536  idle = 1.7725  util% = 63.272621786\n    ERI  = 3.496621  idle = 0.907764\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 90.714379451%\n  Total TN_m      : 26.2678\n  SI_time         : 1.862088945   (lower = more balanced time load)\n  SI_eri          : 1.58098778   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt075_we025_cut05_pessimistic\n// solution (multi-objective optimal) with objective 5.26759425\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.26759425\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.26759425\n          cycleTime  = 5.0485\n          maxEriLoad = 5.924877\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 4.271280373\n          SI_time = sqrt(SI2_time) = 1.918332429   SI2_time = 3.67999931\n          SI_eri  = sqrt(SI2_eri)  = 2.458683298   SI2_eri  = 6.045123561\n\n  w_time = 0.75   w_eri = 0.25\n  scenario_tag = wt=0.75 we=0.25 cut=0.5 pessimistic\n  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.972  idle = 0.0765  util% = 98.484698425\n    ERI  = 4.957938  idle = 0.966939\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.5635  idle = 0.485  util% = 90.393186095\n    ERI  = 5.924877  idle = 0\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.0151  idle = 0.0334  util% = 99.338417352\n    ERI  = 4.737442  idle = 1.187435\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.8052  idle = 0.2433  util% = 95.180746756\n    ERI  = 4.875458  idle = 1.049419\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 5.0485  idle = 8.881784197e-16  util% = 100\n    ERI  = 5.818929  idle = 0.105948\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2104  idle = 1.8381  util% = 63.591165693\n    ERI  = 4.316261  idle = 1.608616\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.164702387%\n  Total TN_m      : 27.6147\n  SI_time         : 1.918332429   (lower = more balanced time load)\n  SI_eri          : 2.458683298   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt075_we025_cut10\n// solution (multi-objective optimal) with objective 4.98325525\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.98325525\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.98325525\n          cycleTime  = 4.9255\n          maxEriLoad = 5.156521\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.640966037\n          SI_time = sqrt(SI2_time) = 1.871690629   SI2_time = 3.50322581\n          SI_eri  = sqrt(SI2_eri)  = 2.01350111   SI2_eri  = 4.054186718\n\n  w_time = 0.75   w_eri = 0.25\n  scenario_tag = wt=0.75 we=0.25 cut=1.0 midpoint\n  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.8506  idle = 0.0749  util% = 98.479342199\n    ERI  = 4.361735  idle = 0.794786\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.452  idle = 0.4735  util% = 90.386762765\n    ERI  = 5.096494  idle = 0.060027\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.8926  idle = 0.0329  util% = 99.332047508\n    ERI  = 4.094556  idle = 1.061965\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.688  idle = 0.2375  util% = 95.178154502\n    ERI  = 4.303039  idle = 0.853482\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.9255  idle = -8.881784197e-16  util% = 100\n    ERI  = 5.156521  idle = 8.881784197e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.1322  idle = 1.7933  util% = 63.591513552\n    ERI  = 3.906442  idle = 1.250079\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.161303421%\n  Total TN_m      : 26.9409\n  SI_time         : 1.871690629   (lower = more balanced time load)\n  SI_eri          : 2.01350111   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt100_we000_cut00_optimistic\n// solution (multi-objective optimal) with objective 4.6792\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.6792\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.6792\n          cycleTime  = 4.6792\n          maxEriLoad = 3.831707\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.13490709\n          SI_time = sqrt(SI2_time) = 1.770566884   SI2_time = 3.13490709\n          SI_eri  = sqrt(SI2_eri)  = 1.674645895   SI2_eri  = 2.804438875\n\n  w_time = 1   w_eri = 0\n  scenario_tag = wt=1.00 we=0.00 cut=0.0 optimistic\n  CT_max = 5.118832   ERI_max = 3.898906  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[14] \n    TN_m = 4.5684  idle = 0.1108  util% = 97.632073859\n    ERI  = 2.993316  idle = 0.838391\n  Operator 2: WS5[15, 16, 17, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.2694  idle = 0.4098  util% = 91.242092665\n    ERI  = 3.615733  idle = 0.215974\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.6483  idle = 0.0309  util% = 99.339630706\n    ERI  = 2.808773  idle = 1.022934\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.4538  idle = 0.2254  util% = 95.182937254\n    ERI  = 3.158197  idle = 0.67351\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.6792  idle = 0  util% = 100\n    ERI  = 3.831707  idle = -4.440892099e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 2.9754  idle = 1.7038  util% = 63.587792785\n    ERI  = 3.086801  idle = 0.744906\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.164087878%\n  Total TN_m      : 25.5945\n  SI_time         : 1.770566884   (lower = more balanced time load)\n  SI_eri          : 1.674645895   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt100_we000_cut00_pessimistic\n// solution (multi-objective optimal) with objective 5.1716\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.1716\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.1716\n          cycleTime  = 5.1716\n          maxEriLoad = 6.753263\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.86268955\n          SI_time = sqrt(SI2_time) = 1.965372624   SI2_time = 3.86268955\n          SI_eri  = sqrt(SI2_eri)  = 3.034838336   SI2_eri  = 9.210243725\n\n  w_time = 1   w_eri = 0\n  scenario_tag = wt=1.00 we=0.00 cut=0.0 pessimistic\n  CT_max = 5.657656   ERI_max = 6.868607  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 5.0933  idle = 0.0783  util% = 98.485961791\n    ERI  = 5.554144  idle = 1.199119\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.6747  idle = 0.4969  util% = 90.391754969\n    ERI  = 6.753263  idle = 0\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.1376  idle = 0.034  util% = 99.34256323\n    ERI  = 5.380336  idle = 1.372927\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.9225  idle = 0.2491  util% = 95.183308841\n    ERI  = 5.447879  idle = 1.305384\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 5.1716  idle = 0  util% = 100\n    ERI  = 6.481339  idle = 0.271924\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2884  idle = 1.8832  util% = 63.585737489\n    ERI  = 4.726083  idle = 2.02718\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.16488772%\n  Total TN_m      : 28.2881\n  SI_time         : 1.965372624   (lower = more balanced time load)\n  SI_eri          : 3.034838336   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt100_we000_cut05_optimistic\n// solution (multi-objective optimal) with objective 4.8024\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.8024\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.8024\n          cycleTime  = 4.8024\n          maxEriLoad = 4.494113\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.30517398\n          SI_time = sqrt(SI2_time) = 1.818013746   SI2_time = 3.30517398\n          SI_eri  = sqrt(SI2_eri)  = 1.876250999   SI2_eri  = 3.520317812\n\n  w_time = 1   w_eri = 0\n  scenario_tag = wt=1.00 we=0.00 cut=0.5 optimistic\n  CT_max = 5.253538   ERI_max = 4.641332  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[15] \n    TN_m = 4.6926  idle = 0.1098  util% = 97.713643178\n    ERI  = 3.569559  idle = 0.924554\n  Operator 2: WS5[14, 16, 17, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.3779  idle = 0.4245  util% = 91.160669665\n    ERI  = 4.464081  idle = 0.030032\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.7704  idle = 0.032  util% = 99.3336665\n    ERI  = 3.451665  idle = 1.042448\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.5709  idle = 0.2315  util% = 95.179493587\n    ERI  = 3.730616  idle = 0.763497\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.8024  idle = 0  util% = 100\n    ERI  = 4.494113  idle = -1.776356839e-15\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.0536  idle = 1.7488  util% = 63.58487423\n    ERI  = 3.496621  idle = 0.997492\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.16205786%\n  Total TN_m      : 26.2678\n  SI_time         : 1.818013746   (lower = more balanced time load)\n  SI_eri          : 1.876250999   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt100_we000_cut05_pessimistic\n// solution (multi-objective optimal) with objective 5.0485\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 5.0485\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 5.0485\n          cycleTime  = 5.0485\n          maxEriLoad = 5.924877\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.67999931\n          SI_time = sqrt(SI2_time) = 1.918332429   SI2_time = 3.67999931\n          SI_eri  = sqrt(SI2_eri)  = 2.458683298   SI2_eri  = 6.045123561\n\n  w_time = 1   w_eri = 0\n  scenario_tag = wt=1.00 we=0.00 cut=0.5 pessimistic\n  CT_max = 5.52295   ERI_max = 6.126182  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.972  idle = 0.0765  util% = 98.484698425\n    ERI  = 4.957938  idle = 0.966939\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.5635  idle = 0.485  util% = 90.393186095\n    ERI  = 5.924877  idle = 0\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 5.0151  idle = 0.0334  util% = 99.338417352\n    ERI  = 4.737442  idle = 1.187435\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.8052  idle = 0.2433  util% = 95.180746756\n    ERI  = 4.875458  idle = 1.049419\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 5.0485  idle = 8.881784197e-16  util% = 100\n    ERI  = 5.818929  idle = 0.105948\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.2104  idle = 1.8381  util% = 63.591165693\n    ERI  = 4.316261  idle = 1.608616\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.164702387%\n  Total TN_m      : 27.6147\n  SI_time         : 1.918332429   (lower = more balanced time load)\n  SI_eri          : 2.458683298   (lower = more balanced ERI load)\n=======================================================================\n\n\nassembly_line_wt100_we000_cut10\n// solution (multi-objective optimal) with objective 4.9255\nSOLVER STATUS: optimal (cplexStatus = 301, relGap = n/a)   objective = 4.9255\n\n=======================================================================\nASSEMBLY LINE BALANCING \u2014 RESULTS\n=======================================================================\n\nOBJECTIVE VALUES (both computed for comparison):\n  [OBJ-1] w_time*cycleTime + w_eri*maxEriLoad = 4.9255\n          cycleTime  = 4.9255\n          maxEriLoad = 5.156521\n\n  [OBJ-2] w_time*SI2_time + w_eri*SI2_eri     = 3.50322581\n          SI_time = sqrt(SI2_time) = 1.871690629   SI2_time = 3.50322581\n          SI_eri  = sqrt(SI2_eri)  = 2.01350111   SI2_eri  = 4.054186718\n\n  w_time = 1   w_eri = 0\n  scenario_tag = wt=1.00 we=0.00 cut=1.0 midpoint\n  CT_max = 5.388244   ERI_max = 5.383757  (caps NOT applied as constraints: OBJ-1 run)\n\nOPERATOR ASSIGNMENTS:\n-----------------------------------------------------------------------\n  Operator 1: WS1[1] WS2[2, 3, 4] WS3[5, 6, 7] WS4[8, 9, 10, 11, 12, 13] WS5[16, 17] \n    TN_m = 4.8506  idle = 0.0749  util% = 98.479342199\n    ERI  = 4.361735  idle = 0.794786\n  Operator 2: WS5[14, 15, 18, 19, 20] WS6[21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] WS7[36] \n    TN_m = 4.452  idle = 0.4735  util% = 90.386762765\n    ERI  = 5.096494  idle = 0.060027\n  Operator 3: WS7[37, 38, 39, 40] WS8[41, 42, 44, 45, 46, 47, 48, 51] WS9[43] WS10[49, 50] WS11[52] \n    TN_m = 4.8926  idle = 0.0329  util% = 99.332047508\n    ERI  = 4.094556  idle = 1.061965\n  Operator 4: WS11[53, 54] WS12[55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65] WS13[66] \n    TN_m = 4.688  idle = 0.2375  util% = 95.178154502\n    ERI  = 4.303039  idle = 0.853482\n  Operator 5: WS13[67] WS14[70, 71] WS15[68, 69] WS16[72, 75, 76, 77, 78, 82] WS17[73, 74] WS18[79, 80, 81] \n    TN_m = 4.9255  idle = -8.881784197e-16  util% = 100\n    ERI  = 5.156521  idle = 8.881784197e-16\n  Operator 6: WS19[83, 84, 85] WS20[86, 87, 88, 89, 90, 91, 92] \n    TN_m = 3.1322  idle = 1.7933  util% = 63.591513552\n    ERI  = 3.906442  idle = 1.250079\n\nPERFORMANCE METRICS:\n-----------------------------------------------------------------------\n  Line Efficiency : 91.161303421%\n  Total TN_m      : 26.9409\n  SI_time         : 1.871690629   (lower = more balanced time load)\n  SI_eri          : 2.01350111   (lower = more balanced ERI load)\n=======================================================================\n\n\n";
+
+  // ---------- Constants ----------
+  var INSTANCES = [
+    { key:"0|optimistic",   alpha:0,   sc:"optimistic",  label:"α=0 optimistic",   head:"α=0",   sub:"optimistic" },
+    { key:"0.5|optimistic", alpha:0.5, sc:"optimistic",  label:"α=0.5 optimistic", head:"α=0.5", sub:"optimistic" },
+    { key:"1|midpoint",     alpha:1,   sc:"midpoint",    label:"α=1 midpoint",     head:"α=1",   sub:"midpoint" },
+    { key:"0.5|pessimistic",alpha:0.5, sc:"pessimistic", label:"α=0.5 pessimistic",head:"α=0.5", sub:"pessimistic" },
+    { key:"0|pessimistic",  alpha:0,   sc:"pessimistic", label:"α=0 pessimistic",  head:"α=0",   sub:"pessimistic" }
+  ];
+  var INST_BY_KEY = {}; INSTANCES.forEach(function(d, i){ d.idx = i; INST_BY_KEY[d.key] = d; });
+
+  var METRICS = [
+    { id:"le",  label:"Line efficiency", short:"Line eff.", unit:"%", d:1, get:function(r){ return r.le; },
+      cap:"Total task time divided by (operators × cycle time).",
+      note:"Each instance uses its own task times (optimistic and pessimistic times differ), so compare cells within a column rather than across instance types." },
+    { id:"obj", label:"Optimal objective z*", short:"z*", unit:"", d:3, get:function(r){ return r.obj; },
+      cap:"The optimized quantity: w_t·CT + w_e·EL.",
+      note:"z* is the only quantity guaranteed to grow from the optimistic to the pessimistic instance." },
+    { id:"ct",  label:"Cycle time CT", short:"CT", unit:"", d:3, get:function(r){ return r.ct; },
+      cap:"Largest operator time load in the solution.",
+      note:"At w_t = 0 the CT is a tie-break value (smallest CT among assignments that already reach the minimum EL), not an optimized quantity." },
+    { id:"el",  label:"Ergonomic peak EL", short:"EL", unit:"", d:3, get:function(r){ return r.el; },
+      cap:"Largest operator ergonomic (FERI) load in the solution.",
+      note:"At w_t = 1 the EL is a tie-break value (smallest EL among assignments that already reach the minimum CT), not an optimized quantity." },
+    { id:"sit", label:"Smoothness index, time", short:"SI time", unit:"", d:3, get:function(r){ return r.siT; },
+      cap:"sqrt(Σ (CT − TN_m)²). Lower = more balanced time load.",
+      note:"Reported after solving; the SI is not part of the optimized objective." },
+    { id:"sie", label:"Smoothness index, ERI", short:"SI ERI", unit:"", d:3, get:function(r){ return r.siE; },
+      cap:"sqrt(Σ (EL − ERI_m)²). Lower = more balanced ergonomic load.",
+      note:"Reported after solving; the SI is not part of the optimized objective." }
+  ];
+
+  var SC_SHAPE = { optimistic:"down", midpoint:"circle", pessimistic:"up" };
+  var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var RAMP = ["#cde2fb","#b7d3f6","#9ec5f4","#86b6ef","#6da7ec","#5598e7","#3987e5","#2a78d6","#256abf","#1c5cab","#184f95","#104281","#0d366b"];
+
+  var state = { runs:[], n:0, m:0, sel:null, metric:"le", sort:{ key:"order", dir:1 }, source:"" };
+
+  // ---------- DOM helpers ----------
+  var svgns = "http://www.w3.org/2000/svg";
+  function $(id){ return document.getElementById(id); }
+  function S(tag, attrs, parent, text){
+    var n = document.createElementNS(svgns, tag);
+    if (attrs) for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function H(tag, attrs, parent, text){
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs){ if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]); }
+    if (text != null) n.textContent = text;
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function clear(n){ while (n.firstChild) n.removeChild(n.firstChild); }
+  function mkSvg(container, w, h, label){
+    clear(container);
+    return S("svg", { "class":"chart", viewBox:"0 0 " + w + " " + h, role:"img", "aria-label":label, preserveAspectRatio:"xMidYMid meet" }, container);
+  }
+  function f(v, d){ return (v == null || isNaN(v)) ? "—" : Number(v).toFixed(d); }
+  function isDark(){
+    var t = document.documentElement.getAttribute("data-theme");
+    if (t) return t === "dark";
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function opVar(k){ return "var(--op" + (((k - 1) % 6) + 1) + ")"; }
+  function scVar(sc){ return "var(--sc-" + sc + ")"; }
+
+  // ---------- Tooltip ----------
+  var tip = $("tooltip");
+  function tipShow(x, y, spec){
+    clear(tip);
+    if (spec.title) H("div", { "class":"tt-title" }, tip, spec.title);
+    (spec.rows || []).forEach(function(r){
+      var row = H("div", { "class":"tt-row" }, tip);
+      if (r.color){ var k = H("span", { "class":"tt-key" }, row); k.style.borderTopColor = r.color; }
+      if (r.value != null) H("span", { "class":"tt-val" }, row, r.value);
+      H("span", { "class":"tt-lab" }, row, r.label);
+    });
+    if (spec.foot) H("div", { "class":"tt-foot" }, tip, spec.foot);
+    tip.classList.add("show");
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var cx = Math.min(Math.max(x, w / 2 + 8), window.innerWidth - w / 2 - 8);
+    var cy = y - 10 < h + 8 ? h + 18 : y;
+    tip.style.left = cx + "px";
+    tip.style.top = (cy - 10) + "px";
+  }
+  function tipHide(){ tip.classList.remove("show"); }
+  function bindTip(node, getSpec){
+    node.addEventListener("pointermove", function(e){ tipShow(e.clientX, e.clientY, getSpec()); });
+    node.addEventListener("pointerleave", tipHide);
+    node.addEventListener("focus", function(){
+      var b = node.getBoundingClientRect();
+      tipShow(b.left + b.width / 2, b.top, getSpec());
+    });
+    node.addEventListener("blur", tipHide);
+  }
+
+  // ---------- Parsing ----------
+  var NUM = "(-?[\\d.]+(?:[eE][+\\-]?\\d+)?)";
+  function grab(re, text){ var m = re.exec(text); return m ? parseFloat(m[1]) : null; }
+
+  function parseRunName(name){
+    var m = /^assembly_line_wt(\d{3})_we(\d{3})_cut(\d{2})(?:_(optimistic|pessimistic|midpoint))?$/i.exec(name);
+    if (!m) return null;
+    var cutMap = { "00":0, "05":0.5, "10":1 };
+    var alpha = cutMap.hasOwnProperty(m[3]) ? cutMap[m[3]] : parseInt(m[3], 10) / 10;
+    var sc = m[4] ? m[4].toLowerCase() : (alpha === 1 ? "midpoint" : null);
+    return { wt:parseInt(m[1], 10) / 100, we:parseInt(m[2], 10) / 100, alpha:alpha, sc:sc };
+  }
+
+  function parseBlock(name, block){
+    var meta = parseRunName(name);
+    if (!meta || !meta.sc) return { error:"Run name not recognised: " + name };
+    var inst = INST_BY_KEY[meta.alpha + "|" + meta.sc];
+    if (!inst) return { error:"Unsupported α/scenario combination in " + name };
+    if (block.indexOf("OPERATOR ASSIGNMENTS") < 0) return { error:"No results found in block " + name };
+
+    var run = { name:name, wt:meta.wt, we:meta.we, alpha:meta.alpha, sc:meta.sc, inst:inst, ops:[] };
+
+    var st = /SOLVER STATUS:\s*([^(\n]+?)\s*\(cplexStatus\s*=\s*(\d+)/.exec(block);
+    if (st){ run.statusLabel = st[1].trim(); run.cplexStatus = parseInt(st[2], 10); run.optimal = /^optimal$/i.test(run.statusLabel); }
+    else {
+      var sm = /solution \(([^)]+)\)/.exec(block);
+      run.statusLabel = sm ? sm[1].trim() : "unknown";
+      run.cplexStatus = null;
+      run.optimal = !!sm && /optimal/i.test(sm[1]) && !/not/i.test(sm[1]);
+    }
+    run.obj = grab(new RegExp("SOLVER STATUS:[^\\n]*objective\\s*=\\s*" + NUM), block);
+    if (run.obj == null) run.obj = grab(new RegExp("solution \\([^)]*\\) with objective " + NUM), block);
+    if (run.obj == null) run.obj = grab(new RegExp("\\[OBJ-1\\][^\\n]*=\\s*" + NUM), block);
+    run.ct  = grab(new RegExp("^\\s*cycleTime\\s*=\\s*" + NUM, "m"), block);
+    run.el  = grab(new RegExp("^\\s*maxEriLoad\\s*=\\s*" + NUM, "m"), block);
+    run.siT = grab(new RegExp("SI_time\\s*=\\s*sqrt\\(SI2_time\\)\\s*=\\s*" + NUM), block);
+    run.siE = grab(new RegExp("SI_eri\\s*=\\s*sqrt\\(SI2_eri\\)\\s*=\\s*" + NUM), block);
+    run.le  = grab(new RegExp("Line Efficiency\\s*:\\s*" + NUM), block);
+    run.totalT = grab(new RegExp("Total TN_m\\s*:\\s*" + NUM), block);
+
+    var start = block.indexOf("OPERATOR ASSIGNMENTS");
+    var end = block.indexOf("PERFORMANCE METRICS");
+    var sect = block.slice(start, end < 0 ? block.length : end);
+    var hdr = /Operator\s+(\d+):/g, hits = [], hm;
+    while ((hm = hdr.exec(sect))) hits.push({ pos:hm.index, k:parseInt(hm[1], 10), len:hm[0].length });
+    hits.forEach(function(h, i){
+      var seg = sect.slice(h.pos + h.len, i + 1 < hits.length ? hits[i + 1].pos : sect.length);
+      var firstLine = seg.split("\n")[0];
+      var op = { k:h.k, ws:[], tasks:[] };
+      var wre = /WS(\d+)\[([^\]]*)\]/g, wm;
+      while ((wm = wre.exec(firstLine))){
+        var w = parseInt(wm[1], 10);
+        var ids = wm[2].split(",").map(function(s){ return parseInt(s.trim(), 10); }).filter(function(x){ return !isNaN(x); });
+        op.ws.push({ w:w, tasks:ids });
+        ids.forEach(function(t){ op.tasks.push({ t:t, w:w }); });
+      }
+      var tn = new RegExp("TN_m\\s*=\\s*" + NUM + "\\s+idle\\s*=\\s*" + NUM + "\\s+util%\\s*=\\s*" + NUM).exec(seg);
+      var er = new RegExp("\\bERI\\s*=\\s*" + NUM + "\\s+idle\\s*=\\s*" + NUM).exec(seg);
+      op.tn = tn ? parseFloat(tn[1]) : 0;   op.idleT = tn ? parseFloat(tn[2]) : null; op.util = tn ? parseFloat(tn[3]) : 0;
+      op.eri = er ? parseFloat(er[1]) : 0;  op.idleE = er ? parseFloat(er[2]) : null;
+      run.ops.push(op);
+    });
+    if (!run.ops.length) return { error:"No operator assignments found in block " + name };
+
+    var maxT = 0;
+    run.ops.forEach(function(op){ op.tasks.forEach(function(x){ if (x.t > maxT) maxT = x.t; }); });
+    run.n = maxT;
+    run.assign = new Array(maxT); run.wsOf = new Array(maxT);
+    run.ops.forEach(function(op){ op.tasks.forEach(function(x){ run.assign[x.t - 1] = op.k; run.wsOf[x.t - 1] = x.w; }); });
+    for (var i = 0; i < maxT; i++) if (run.assign[i] == null) return { error:"Task " + (i + 1) + " is not assigned in block " + name };
+    if (run.ct == null){ run.ct = 0; run.ops.forEach(function(o){ if (o.tn > run.ct) run.ct = o.tn; }); }
+    if (run.el == null){ run.el = 0; run.ops.forEach(function(o){ if (o.eri > run.el) run.el = o.eri; }); }
+    return run;
+  }
+
+  function parseText(text){
+    text = text.replace(/\r/g, "");
+    var re = /^(assembly_line_[A-Za-z0-9_]+)[ \t]*$/gm, hits = [], m;
+    while ((m = re.exec(text))) hits.push({ pos:m.index, name:m[1] });
+    var runs = [], errors = [];
+    if (!hits.length) errors.push("No run headers found. Each block must start with a line containing only the run name, e.g. assembly_line_wt050_we050_cut05_optimistic.");
+    hits.forEach(function(h, i){
+      var r = parseBlock(h.name, text.slice(h.pos, i + 1 < hits.length ? hits[i + 1].pos : text.length));
+      if (r.error) errors.push(r.error); else runs.push(r);
+    });
+    return { runs:runs, errors:errors };
+  }
+
+  function prepare(runs){
+    runs.sort(function(a, b){ return a.wt - b.wt || a.inst.idx - b.inst.idx; });
+    var sigs = {}, next = 0;
+    runs.forEach(function(r, i){
+      r.order = i;
+      var sig = r.assign.join(",");
+      if (!sigs.hasOwnProperty(sig)) sigs[sig] = LETTERS.charAt(next++ % 26);
+      r.asg = sigs[sig]; r.sig = sig;
+      r.label = "w_t=" + f(r.wt, 2) + " · " + r.inst.label;
+    });
+    state.runs = runs;
+    state.distinct = next;
+    state.n = Math.max.apply(null, runs.map(function(r){ return r.n; }));
+    state.m = Math.max.apply(null, runs.map(function(r){ return r.ops.length; }));
+    state.wts = Array.from(new Set(runs.map(function(r){ return r.wt; }))).sort(function(a, b){ return a - b; });
+    state.sel = runs[0].name;
+  }
+  function byName(n){ for (var i = 0; i < state.runs.length; i++) if (state.runs[i].name === n) return state.runs[i]; return null; }
+  function selRun(){ return byName(state.sel) || state.runs[0]; }
+  function runAt(wt, inst){
+    for (var i = 0; i < state.runs.length; i++){ var r = state.runs[i]; if (Math.abs(r.wt - wt) < 1e-9 && r.inst === inst) return r; }
+    return null;
+  }
+  function select(name){ state.sel = name; renderAll(); }
+
+  // ---------- Colour helpers ----------
+  function hex2rgb(h){ return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+  function rampColor(t){
+    t = Math.max(0, Math.min(1, t));
+    if (isDark()) t = 1 - t;                 // in dark mode the low end recedes into the surface
+    var x = t * (RAMP.length - 1), i = Math.floor(x), fr = x - i;
+    var a = hex2rgb(RAMP[i]), b = hex2rgb(RAMP[Math.min(i + 1, RAMP.length - 1)]);
+    var c = a.map(function(v, j){ return Math.round(v + (b[j] - v) * fr); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  function lum(rgbStr){
+    var c = rgbStr.match(/\d+/g).map(Number).map(function(v){ v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function inkOn(fill){ return lum(fill) > 0.32 ? "#0b0b0b" : "#ffffff"; }
+
+  function niceTicks(lo, hi, count){
+    var span = hi - lo, step = Math.pow(10, Math.floor(Math.log10(span / count)));
+    var err = (span / count) / step;
+    step *= err >= 5 ? 5 : err >= 2 ? 2 : 1;
+    var a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step, out = [];
+    for (var v = a; v <= b + step * 0.001; v += step) out.push(Math.round(v / step) * step);
+    return out;
+  }
+
+  // ---------- Importer / status ----------
+  function setStatus(msg){ $("datasetStatus").textContent = msg; }
+  function showError(msg){ var e = $("importError"); if (msg){ e.hidden = false; e.textContent = msg; } else { e.hidden = true; e.textContent = ""; } }
+
+  function load(text, source){
+    var res = parseText(text);
+    if (!res.runs.length){ showError(res.errors.join(" ")); return false; }
+    prepare(res.runs);
+    state.source = source;
+    var skipped = res.errors.length ? " · " + res.errors.length + " block(s) skipped (" + res.errors[0] + ")" : "";
+    setStatus(source + ": " + res.runs.length + " runs, " + state.n + " tasks, " + state.m + " operators" + skipped);
+    showError("");
+    renderAll();
+    return true;
+  }
+
+  // ---------- KPIs ----------
+  function renderKpis(){
+    var g = $("kpiGrid"); clear(g);
+    var runs = state.runs, nOpt = runs.filter(function(r){ return r.optimal; }).length;
+    var lo = runs.reduce(function(a, r){ return Math.min(a, r.obj); }, Infinity);
+    var hi = runs.reduce(function(a, r){ return Math.max(a, r.obj); }, -Infinity);
+    var meanLe = runs.reduce(function(a, r){ return a + r.le; }, 0) / runs.length;
+    function tile(label, value, unit, foot, cls){
+      var k = H("div", { "class":"kpi" }, g);
+      H("div", { "class":"label" }, k, label);
+      var v = H("div", { "class":"value" }, k, value);
+      if (unit) H("small", null, v, " " + unit);
+      H("div", { "class":"foot" + (cls ? " " + cls : "") }, k, foot);
+    }
+    var leLo = runs.reduce(function(a, r){ return Math.min(a, r.le); }, Infinity);
+    var leHi = runs.reduce(function(a, r){ return Math.max(a, r.le); }, -Infinity);
+    var ctLo = runs.reduce(function(a, r){ return Math.min(a, r.ct); }, Infinity);
+    var ctHi = runs.reduce(function(a, r){ return Math.max(a, r.ct); }, -Infinity);
+    tile("Runs solved", nOpt + " / " + runs.length, "", nOpt === runs.length ? "\u2713 all proven optimal" : "\u26a0 " + (runs.length - nOpt) + " not proven optimal", nOpt === runs.length ? "ok" : "bad");
+    tile("Mean line efficiency", f(meanLe, 1), "%", "range " + f(leLo, 1) + " \u2013 " + f(leHi, 1) + " % over " + runs.length + " runs");
+    tile("Objective z* range", f(lo, 2) + " \u2013 " + f(hi, 2), "", "lowest \u2013 highest over all runs");
+    tile("Cycle time range", f(ctLo, 2) + " \u2013 " + f(ctHi, 2), "", "smallest \u2013 largest CT over all runs");
+    tile("Distinct assignments", String(state.distinct), "", "among " + runs.length + " runs (" + state.n + " tasks, " + state.m + " operators)");
+    $("selHint").textContent = "";
+    var a = H("a", { href:"#explorer" }, $("selHint"), "Selected: " + selRun().label + " ↓");
+  }
+
+  // ---------- Chart: objective bands ----------
+  function renderBand(){
+    var c = $("chartBand");
+    var W = 560, Ht = 330, ml = 44, mr = 96, mt = 14, mb = 40;
+    var pw = W - ml - mr, ph = Ht - mt - mb;
+    var wts = state.wts, all = state.runs.map(function(r){ return r.obj; });
+    var ticks = niceTicks(Math.min.apply(null, all), Math.max.apply(null, all), 5);
+    var y0 = ticks[0], y1 = ticks[ticks.length - 1];
+    var X = function(wt){ return ml + (wts.length > 1 ? (wt - wts[0]) / (wts[wts.length - 1] - wts[0]) : 0.5) * pw; };
+    var Y = function(v){ return mt + ph - (v - y0) / (y1 - y0) * ph; };
+    var svg = mkSvg(c, W, Ht, "Optimal objective z* against time weight, with alpha-cut bands");
+    ticks.forEach(function(t){
+      S("line", { "class":"grid-line", x1:ml, x2:ml + pw, y1:Y(t), y2:Y(t) }, svg);
+      S("text", { "class":"axis-label", x:ml - 6, y:Y(t) + 3, "text-anchor":"end" }, svg, f(t, 1));
+    });
+    wts.forEach(function(wt){
+      S("text", { "class":"axis-label", x:X(wt), y:Ht - mb + 14, "text-anchor":"middle" }, svg, f(wt, 2));
+    });
+    S("text", { "class":"axis-title", x:ml + pw / 2, y:Ht - 6, "text-anchor":"middle" }, svg, "time weight w_t  (0 = ergonomics only → 1 = time only)");
+    S("text", { "class":"axis-title", x:12, y:mt + ph / 2, "text-anchor":"middle", transform:"rotate(-90 12 " + (mt + ph / 2) + ")" }, svg, "objective z*");
+
+    function series(inst){ return wts.map(function(wt){ var r = runAt(wt, inst); return r ? { wt:wt, v:r.obj } : null; }).filter(Boolean); }
+    var I = INST_BY_KEY;
+    function band(iLo, iHi, opacity){
+      var lo = series(I[iLo]), hi = series(I[iHi]);
+      if (!lo.length || lo.length !== hi.length) return;
+      var d = lo.map(function(p, i){ return (i ? "L" : "M") + X(p.wt) + " " + Y(p.v); }).join("") +
+              hi.slice().reverse().map(function(p){ return "L" + X(p.wt) + " " + Y(p.v); }).join("") + "Z";
+      S("path", { d:d, fill:"var(--accent)", "fill-opacity":opacity, stroke:"none" }, svg);
+    }
+    band("0|optimistic", "0|pessimistic", 0.10);
+    band("0.5|optimistic", "0.5|pessimistic", 0.18);
+    var mid = series(I["1|midpoint"]);
+    if (mid.length){
+      S("path", { d:mid.map(function(p, i){ return (i ? "L" : "M") + X(p.wt) + " " + Y(p.v); }).join(""), fill:"none", stroke:"var(--accent)", "stroke-width":2, "stroke-linejoin":"round", "stroke-linecap":"round" }, svg);
+      mid.forEach(function(p){ S("circle", { cx:X(p.wt), cy:Y(p.v), r:4, fill:"var(--accent)", stroke:"var(--surface)", "stroke-width":2 }, svg); });
+    }
+    // direct labels at the right end (band edges and midpoint only)
+    var lastWt = wts[wts.length - 1];
+    [["0|pessimistic", "α=0 pessimistic"], ["1|midpoint", "α=1 midpoint"], ["0|optimistic", "α=0 optimistic"]].forEach(function(p){
+      var r = runAt(lastWt, I[p[0]]); if (!r) return;
+      S("text", { "class":"val-label", x:X(lastWt) + 9, y:Y(r.obj) + 3.5 }, svg, p[1]);
+    });
+    // hover / focus columns
+    var step = wts.length > 1 ? pw / (wts.length - 1) : pw;
+    var cross = S("line", { x1:0, x2:0, y1:mt, y2:mt + ph, stroke:"var(--text-muted)", "stroke-width":1, visibility:"hidden" }, svg);
+    wts.forEach(function(wt){
+      var col = S("rect", { "class":"hit focusable", x:X(wt) - step / 2, y:mt, width:step, height:ph, tabindex:0, role:"img",
+        "aria-label":"w_t " + f(wt, 2) + ": optimal objective by instance" }, svg);
+      bindTip(col, function(){
+        var rows = INSTANCES.slice().reverse().map(function(inst){
+          var r = runAt(wt, inst);
+          return r ? { color:"var(--accent)", value:f(r.obj, 3), label:inst.label } : null;
+        }).filter(Boolean);
+        return { title:"w_t=" + f(wt, 2) + "  w_e=" + f(1 - wt, 2), rows:rows };
+      });
+      col.addEventListener("pointerenter", function(){ cross.setAttribute("x1", X(wt)); cross.setAttribute("x2", X(wt)); cross.setAttribute("visibility", "visible"); });
+      col.addEventListener("pointerleave", function(){ cross.setAttribute("visibility", "hidden"); });
+      col.addEventListener("focus", function(){ cross.setAttribute("x1", X(wt)); cross.setAttribute("x2", X(wt)); cross.setAttribute("visibility", "visible"); });
+      col.addEventListener("blur", function(){ cross.setAttribute("visibility", "hidden"); });
+    });
+    var lg = $("bandLegend"); clear(lg);
+    [["α=0 range", 0.10, false], ["α=0.5 range", 0.18, false], ["α=1 midpoint", 1, true]].forEach(function(l){
+      var it = H("span", { "class":"legend-item" }, lg);
+      var s = S("svg", { width:18, height:10, viewBox:"0 0 18 10" }, it);
+      if (l[2]) S("line", { x1:0, x2:18, y1:5, y2:5, stroke:"var(--accent)", "stroke-width":2 }, s);
+      else S("rect", { x:0, y:1, width:18, height:8, rx:2, fill:"var(--accent)", "fill-opacity":l[1] + 0.12 }, s);
+      it.appendChild(document.createTextNode(l[0]));
+    });
+  }
+
+  // ---------- Chart: metric heatmap ----------
+  function renderHeat(){
+    var met = METRICS.filter(function(m){ return m.id === state.metric; })[0] || METRICS[0];
+    $("heatTitle").textContent = met.label;
+    $("heatCap").textContent = met.cap;
+    $("heatNote").textContent = met.note;
+    var chips = $("metricChips"); clear(chips);
+    METRICS.forEach(function(m){
+      var b = H("button", { "class":"chip", type:"button", "aria-pressed":String(m.id === met.id) }, chips, m.short);
+      b.addEventListener("click", function(){ state.metric = m.id; renderHeat(); });
+    });
+    var wts = state.wts, vals = state.runs.map(met.get).filter(function(v){ return v != null; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var rowH = 38, colW = 84, ml = 78, mt = 44, W = ml + colW * INSTANCES.length + 2, Ht = mt + rowH * wts.length + 4;
+    var svg = mkSvg($("chartHeat"), W, Ht, met.label + " by weight pair and instance");
+    S("text", { "class":"cat-sub", x:ml - 10, y:mt - 8, "text-anchor":"end" }, svg, "w_t / w_e");
+    INSTANCES.forEach(function(inst, j){
+      var cx = ml + colW * j + colW / 2;
+      S("text", { "class":"cat-label", x:cx, y:mt - 24, "text-anchor":"middle" }, svg, inst.head);
+      S("text", { "class":"cat-sub", x:cx, y:mt - 11, "text-anchor":"middle" }, svg, inst.sub);
+    });
+    wts.forEach(function(wt, i){
+      S("text", { "class":"cat-label", x:ml - 10, y:mt + rowH * i + rowH / 2 + 4, "text-anchor":"end" }, svg, f(wt, 2) + " / " + f(1 - wt, 2));
+      INSTANCES.forEach(function(inst, j){
+        var r = runAt(wt, inst); if (!r) return;
+        var v = met.get(r), t = hi > lo ? (v - lo) / (hi - lo) : 0.5, fill = rampColor(t);
+        var x = ml + colW * j + 1, y = mt + rowH * i + 1;
+        var g = S("g", { "class":"clickable focusable", tabindex:0, role:"button", "aria-label":r.label + ": " + met.short + " " + f(v, met.d) }, svg);
+        S("rect", { x:x, y:y, width:colW - 2, height:rowH - 2, rx:4, fill:fill }, g);
+        if (r.name === state.sel) S("rect", { x:x + 1, y:y + 1, width:colW - 4, height:rowH - 4, rx:3, fill:"none", stroke:inkOn(fill), "stroke-width":2 }, g);
+        S("text", { x:x + (colW - 2) / 2, y:y + (rowH - 2) / 2 + 4, "text-anchor":"middle", fill:inkOn(fill), "font-size":11, "font-weight":500 }, g, f(v, met.d));
+        bindTip(g, function(){ return { title:r.label, rows:[{ value:f(v, met.d) + (met.unit || ""), label:met.label }, { value:f(r.obj, 3), label:"z*" }], foot:"Click to open in the explorer" }; });
+        g.addEventListener("click", function(){ select(r.name); });
+        g.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); select(r.name); } });
+      });
+    });
+    var sc = $("heatScale"); clear(sc);
+    H("span", null, sc, f(lo, met.d));
+    var gs = S("svg", { width:150, height:10, viewBox:"0 0 150 10" }, sc);
+    var defs = S("defs", null, gs), gr = S("linearGradient", { id:"heatGrad" }, defs);
+    for (var k = 0; k <= 12; k++) S("stop", { offset:(k / 12 * 100) + "%", "stop-color":rampColor(k / 12) }, gr);
+    S("rect", { x:0, y:0, width:150, height:10, rx:3, fill:"url(#heatGrad)" }, gs);
+    H("span", null, sc, f(hi, met.d) + (met.unit ? " " + met.unit : ""));
+    H("span", { style:"color:var(--text-muted)" }, sc, isDark() ? "lighter = larger value" : "darker = larger value");
+  }
+
+  // ---------- Chart: CT vs EL scatter ----------
+  function shapePath(shape, cx, cy, r){
+    if (shape === "up") return "M" + cx + " " + (cy - r * 1.15) + "L" + (cx + r * 1.1) + " " + (cy + r * 0.85) + "L" + (cx - r * 1.1) + " " + (cy + r * 0.85) + "Z";
+    if (shape === "down") return "M" + cx + " " + (cy + r * 1.15) + "L" + (cx + r * 1.1) + " " + (cy - r * 0.85) + "L" + (cx - r * 1.1) + " " + (cy - r * 0.85) + "Z";
+    return null;
+  }
+  function drawMarker(parent, shape, cx, cy, r, color, extra){
+    var a = { fill:color, stroke:"var(--surface)", "stroke-width":2 };
+    for (var k in extra) a[k] = extra[k];
+    if (shape === "circle"){ a.cx = cx; a.cy = cy; a.r = r; return S("circle", a, parent); }
+    a.d = shapePath(shape, cx, cy, r); return S("path", a, parent);
+  }
+  function renderScatter(){
+    var W = 560, Ht = 470, ml = 46, mr = 18, mt = 14, mb = 42, pw = W - ml - mr, ph = Ht - mt - mb;
+    var runs = state.runs;
+    var xs = runs.map(function(r){ return r.ct; }), ys = runs.map(function(r){ return r.el; });
+    var xt = niceTicks(Math.min.apply(null, xs) - 0.05, Math.max.apply(null, xs) + 0.05, 6);
+    var yt = niceTicks(Math.min.apply(null, ys) - 0.1, Math.max.apply(null, ys) + 0.1, 6);
+    var X = function(v){ return ml + (v - xt[0]) / (xt[xt.length - 1] - xt[0]) * pw; };
+    var Y = function(v){ return mt + ph - (v - yt[0]) / (yt[yt.length - 1] - yt[0]) * ph; };
+    var svg = mkSvg($("chartScatter"), W, Ht, "Cycle time against ergonomic peak for every run");
+    xt.forEach(function(t){
+      S("line", { "class":"grid-line", x1:X(t), x2:X(t), y1:mt, y2:mt + ph }, svg);
+      S("text", { "class":"axis-label", x:X(t), y:mt + ph + 14, "text-anchor":"middle" }, svg, f(t, 1));
+    });
+    yt.forEach(function(t){
+      S("line", { "class":"grid-line", x1:ml, x2:ml + pw, y1:Y(t), y2:Y(t) }, svg);
+      S("text", { "class":"axis-label", x:ml - 6, y:Y(t) + 3, "text-anchor":"end" }, svg, f(t, 1));
+    });
+    S("text", { "class":"axis-title", x:ml + pw / 2, y:Ht - 6, "text-anchor":"middle" }, svg, "cycle time CT");
+    S("text", { "class":"axis-title", x:12, y:mt + ph / 2, "text-anchor":"middle", transform:"rotate(-90 12 " + (mt + ph / 2) + ")" }, svg, "ergonomic peak EL");
+
+    var groups = {}, order = [];
+    runs.forEach(function(r){
+      var key = f(r.ct, 4) + "|" + f(r.el, 4);
+      if (!groups[key]){ groups[key] = { ct:r.ct, el:r.el, runs:[] }; order.push(key); }
+      groups[key].runs.push(r);
+    });
+    var pts = order.map(function(k){ return groups[k]; });
+    var selName = state.sel;
+    function specFor(g){
+      return { title:g.runs.length > 1 ? g.runs.length + " runs at this point" : g.runs[0].label,
+        rows:[{ value:f(g.ct, 3), label:"cycle time CT" }, { value:f(g.el, 3), label:"ergonomic peak EL" }].concat(
+          g.runs.map(function(r){ return { color:scVar(r.sc), label:r.label + "  ·  z* " + f(r.obj, 3) }; })),
+        foot:"Click to open " + (g.runs.length > 1 ? "the first run" : "this run") };
+    }
+    pts.forEach(function(g){
+      var r0 = g.runs[0], cx = X(g.ct), cy = Y(g.el), selected = g.runs.some(function(r){ return r.name === selName; });
+      if (selected) S("circle", { cx:cx, cy:cy, r:11, fill:"none", stroke:"var(--text-primary)", "stroke-width":1.5 }, svg);
+      var node = S("g", { "class":"clickable focusable", tabindex:0, role:"button", "aria-label":specFor(g).title + ": CT " + f(g.ct, 3) + ", EL " + f(g.el, 3) }, svg);
+      drawMarker(node, SC_SHAPE[r0.sc], cx, cy, 5.5, scVar(r0.sc), {});
+      if (g.runs.length > 1) S("text", { x:cx + 9, y:cy - 7, "font-size":10, fill:"var(--text-secondary)" }, node, "×" + g.runs.length);
+      g.node = node;
+      node.addEventListener("focus", function(){ var b = node.getBoundingClientRect(); tipShow(b.left + b.width / 2, b.top, specFor(g)); });
+      node.addEventListener("blur", tipHide);
+      node.addEventListener("click", function(){ select(g.runs[0].name); });
+      node.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); select(g.runs[0].name); } });
+    });
+    // nearest-point layer: the pointer only has to be closest, not dead-centre
+    var layer = S("rect", { "class":"hit clickable", x:ml, y:mt, width:pw, height:ph }, svg);
+    function nearest(e){
+      var b = svg.getBoundingClientRect(), k = W / b.width;
+      var px = (e.clientX - b.left) * k, py = (e.clientY - b.top) * k, best = null, bd = 1e9;
+      pts.forEach(function(g){ var d = Math.hypot(X(g.ct) - px, Y(g.el) - py); if (d < bd){ bd = d; best = g; } });
+      return bd <= 22 * k ? best : null;
+    }
+    layer.addEventListener("pointermove", function(e){ var g = nearest(e); if (g) tipShow(e.clientX, e.clientY, specFor(g)); else tipHide(); });
+    layer.addEventListener("pointerleave", tipHide);
+    layer.addEventListener("click", function(e){ var g = nearest(e); if (g) select(g.runs[0].name); });
+
+    var lg = $("scatterLegend"); clear(lg);
+    ["optimistic", "midpoint", "pessimistic"].forEach(function(sc){
+      var it = H("span", { "class":"legend-item" }, lg), s = S("svg", { width:14, height:14, viewBox:"0 0 14 14" }, it);
+      drawMarker(s, SC_SHAPE[sc], 7, 7, 4.5, scVar(sc), { stroke:"none" });
+      it.appendChild(document.createTextNode(sc === "midpoint" ? "α=1 midpoint" : sc + " (α=0 and 0.5)"));
+    });
+  }
+
+  // ---------- Chart: utilisation heatmap (runs x operators) ----------
+  function renderUtil(){
+    var runs = state.runs, m = state.m;
+    var rowH = 15, gap = 2, groupGap = 7, ml = 138, colW = 62, mt = 30;
+    var W = ml + colW * m + 4, Ht = mt + runs.length * (rowH + gap) + (state.wts.length - 1) * groupGap + 2;
+    var svg = mkSvg($("chartUtil"), W, Ht, "Operator time load as a share of cycle time, per run");
+    for (var k = 1; k <= m; k++){
+      var cx = ml + colW * (k - 1) + colW / 2;
+      S("rect", { x:cx - 12, y:5, width:8, height:8, rx:2, fill:opVar(k) }, svg);
+      S("text", { "class":"cat-label", x:cx - 1, y:13, "text-anchor":"start" }, svg, String(k));
+    }
+    S("text", { "class":"cat-sub", x:ml - 10, y:13, "text-anchor":"end" }, svg, "operator");
+    var y = mt, prevWt = null;
+    runs.forEach(function(r){
+      if (prevWt !== null && Math.abs(r.wt - prevWt) > 1e-9) y += groupGap;
+      prevWt = r.wt;
+      S("text", { "class":"cat-sub", x:ml - 10, y:y + rowH / 2 + 3.5, "text-anchor":"end", "font-weight":r.name === state.sel ? 700 : 400 }, svg, f(r.wt, 2) + " · " + r.inst.head + " " + r.inst.sub.slice(0, 3) + ".");
+      r.ops.forEach(function(op, i){
+        var u = r.ct > 0 ? op.tn / r.ct : 0, fill = rampColor(u);
+        var x = ml + colW * i + 1;
+        var g = S("g", { "class":"clickable" }, svg);
+        S("rect", { x:x, y:y, width:colW - 2, height:rowH, rx:3, fill:fill }, g);
+        S("text", { x:x + (colW - 2) / 2, y:y + rowH / 2 + 3.5, "text-anchor":"middle", fill:inkOn(fill), "font-size":9.5 }, g, f(u * 100, 0) + "%");
+        bindTip(g, function(){ return { title:r.label, rows:[{ color:opVar(op.k), value:f(u * 100, 1) + "%", label:"operator " + op.k + " · TN_m " + f(op.tn, 3) + " of CT " + f(r.ct, 3) }] }; });
+        g.addEventListener("click", function(){ select(r.name); });
+      });
+      if (r.name === state.sel) S("rect", { x:ml - 1, y:y - 1, width:colW * m + 1, height:rowH + 2, rx:4, fill:"none", stroke:"var(--text-primary)", "stroke-width":1.5 }, svg);
+      y += rowH + gap;
+    });
+    var lg = $("utilLegend"); clear(lg);
+    var it = H("span", { "class":"legend-item" }, lg, "Cell shade = TN_m / CT (" + (isDark() ? "lighter" : "darker") + " = fuller); the bottleneck operator of each run is 100%.");
+  }
+
+  // ---------- Chart: assignment map (all runs) ----------
+  function wsBrackets(svg, run, x0, cw, top){
+    // workstation spans (first..last task) as thin brackets with the workstation number above
+    var spans = {}, order = [];
+    for (var i = 0; i < run.n; i++){
+      var w = run.wsOf[i];
+      if (!spans[w]){ spans[w] = { w:w, a:i, b:i }; order.push(w); } else spans[w].b = i;
+    }
+    order.forEach(function(w, idx){
+      var s = spans[w], xa = x0 + s.a * cw + 1, xb = x0 + (s.b + 1) * cw - 1;
+      var high = (xb - xa < 15) && (idx % 2 === 1);
+      S("line", { x1:xa, x2:xb, y1:top + 25, y2:top + 25, stroke:"var(--text-muted)", "stroke-width":1.5, "stroke-linecap":"round" }, svg);
+      S("text", { "class":"axis-label", x:(xa + xb) / 2, y:top + (high ? 11 : 21), "text-anchor":"middle" }, svg, String(w));
+    });
+  }
+
+  function renderMap(){
+    var runs = state.runs, n = state.n;
+    var W = 1140, ml = 118, mr = 26, cw = (W - ml - mr) / n, rowH = 13, gap = 2, groupGap = 8, headH = 15, mt = 34;
+    var Ht = mt + runs.length * (rowH + gap) + state.wts.length * (headH + groupGap) + 4;
+    var svg = mkSvg($("chartMap"), W, Ht, "Operator assigned to each task in each run");
+    S("text", { "class":"cat-sub", x:ml - 8, y:13, "text-anchor":"end" }, svg, "workstation");
+    wsBrackets(svg, runs[0], ml, cw, -4);
+    var y = mt, prevWt = null, gi = 0;
+    runs.forEach(function(r){
+      if (prevWt === null || Math.abs(r.wt - prevWt) > 1e-9){
+        if (prevWt !== null) y += groupGap;
+        S("text", { "class":"cat-label", x:0, y:y + 10, "font-weight":600 }, svg, "w_t " + f(r.wt, 2) + "  /  w_e " + f(1 - r.wt, 2));
+        y += headH; prevWt = r.wt; gi++;
+      }
+      var isSel = r.name === state.sel;
+      S("text", { "class":"cat-sub", x:ml - 8, y:y + rowH - 3, "text-anchor":"end", "font-weight":isSel ? 700 : 400 }, svg, r.inst.head + " " + r.inst.sub);
+      var g = S("g", { "class":"clickable focusable", tabindex:0, role:"button", "aria-label":"Open run " + r.label }, svg);
+      for (var i = 0; i < r.n; i++){
+        S("rect", { x:ml + i * cw + 0.5, y:y, width:cw - 1, height:rowH, rx:1.5, fill:opVar(r.assign[i]),
+                    "data-t":i + 1 }, g);
+      }
+      S("text", { "class":"cat-sub", x:W - mr + 8, y:y + rowH - 3, "font-weight":700 }, svg, r.asg);
+      if (isSel) S("rect", { x:ml - 2, y:y - 2, width:cw * r.n + 4, height:rowH + 4, rx:3, fill:"none", stroke:"var(--text-primary)", "stroke-width":1.5 }, svg);
+      g.addEventListener("click", function(){ select(r.name); });
+      g.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); select(r.name); } });
+      g.addEventListener("pointermove", function(e){
+        var b = svg.getBoundingClientRect(), k = W / b.width, px = (e.clientX - b.left) * k;
+        var i = Math.floor((px - ml) / cw);
+        if (i < 0 || i >= r.n){ tipHide(); return; }
+        tipShow(e.clientX, e.clientY, { title:r.label, rows:[{ color:opVar(r.assign[i]), value:"Operator " + r.assign[i], label:"task " + (i + 1) + " · workstation " + r.wsOf[i] }], foot:"Assignment " + r.asg + " · click to open" });
+      });
+      g.addEventListener("pointerleave", tipHide);
+      g.addEventListener("focus", function(){ var b = g.getBoundingClientRect(); tipShow(b.left + b.width / 2, b.top, { title:r.label, rows:[{ label:"Assignment " + r.asg + " · press Enter to open" }] }); });
+      g.addEventListener("blur", tipHide);
+      y += rowH + gap;
+    });
+    var lg = $("mapLegend"); clear(lg);
+    for (var k = 1; k <= state.m; k++){
+      var it = H("span", { "class":"legend-item" }, lg), s = S("svg", { width:12, height:12, viewBox:"0 0 12 12" }, it);
+      S("rect", { x:0, y:1, width:12, height:10, rx:2, fill:opVar(k) }, s);
+      it.appendChild(document.createTextNode("Operator " + k));
+    }
+  }
+
+  // ---------- Explorer ----------
+  function renderExplorer(){
+    var r = selRun();
+    var wc = $("wtChips"); clear(wc);
+    state.wts.forEach(function(wt){
+      var b = H("button", { "class":"chip", type:"button", "aria-pressed":String(Math.abs(wt - r.wt) < 1e-9) }, wc, f(wt, 2) + " / " + f(1 - wt, 2));
+      b.addEventListener("click", function(){ var t = runAt(wt, r.inst); if (t) select(t.name); });
+    });
+    var ic = $("instChips"); clear(ic);
+    INSTANCES.forEach(function(inst){
+      if (!runAt(r.wt, inst)) return;
+      var b = H("button", { "class":"chip", type:"button", "aria-pressed":String(inst === r.inst) }, ic, inst.label);
+      b.addEventListener("click", function(){ var t = runAt(r.wt, inst); if (t) select(t.name); });
+    });
+
+    var sm = $("summary"); clear(sm);
+    H("span", { "class":"title" }, sm, r.label);
+    var bd = H("span", { "class":"badge " + (r.optimal ? "ok" : "bad") }, sm, (r.optimal ? "✓ Optimal" : "⚠ Not proven optimal") + (r.cplexStatus != null ? " (cplexStatus " + r.cplexStatus + ")" : ""));
+    [["z*", f(r.obj, 3)], ["CT", f(r.ct, 3)], ["EL", f(r.el, 3)], ["Line efficiency", f(r.le, 1) + "%"], ["Assignment", r.asg]].forEach(function(p){
+      var s = H("span", { "class":"stat" }, sm, p[0] + " "); H("b", null, s, p[1]);
+    });
+
+    renderLoad($("chartLoadT"), r, "tn", r.ct, "CT", state.runs.reduce(function(a, x){ return Math.max(a, x.ct); }, 0), function(op){ return f(op.tn, 2) + "  ·  " + f(r.ct > 0 ? op.tn / r.ct * 100 : 0, 0) + "%"; });
+    renderLoad($("chartLoadE"), r, "eri", r.el, "EL", state.runs.reduce(function(a, x){ return Math.max(a, x.el); }, 0), function(op){ return f(op.eri, 2); });
+    renderLayout(r);
+    renderOpTable(r);
+  }
+
+  function renderLoad(container, r, key, ref, refLabel, gmax, fmt){
+    var rowH = 38, ml = 92, mr = 8, mt = 22, W = 520, pw = W - ml - mr - 80, Ht = mt + rowH * r.ops.length + 4;
+    var domain = gmax * 1.02;
+    var X = function(v){ return ml + v / domain * pw; };
+    var svg = mkSvg(container, W, Ht, "Load per operator against " + refLabel);
+    r.ops.forEach(function(op, i){
+      var y = mt + i * rowH, v = op[key], bh = 18;
+      S("rect", { x:ml - 76, y:y + rowH / 2 - 5, width:10, height:10, rx:2, fill:opVar(op.k) }, svg);
+      S("text", { "class":"cat-label", x:ml - 60, y:y + rowH / 2 + 4 }, svg, "Operator " + op.k);
+      S("path", { d:"M" + X(0) + " " + (y + 4) + "H" + X(ref) + "V" + (y + 4 + bh) + "H" + X(0) + "Z", fill:"var(--surface-2)" }, svg);
+      var w = Math.max(X(v) - X(0), 0);
+      if (w > 4) S("path", { d:"M" + X(0) + " " + (y + 4) + "H" + (X(0) + w - 4) + "Q" + (X(0) + w) + " " + (y + 4) + " " + (X(0) + w) + " " + (y + 8) + "V" + (y + 4 + bh - 4) + "Q" + (X(0) + w) + " " + (y + 4 + bh) + " " + (X(0) + w - 4) + " " + (y + 4 + bh) + "H" + X(0) + "Z", fill:opVar(op.k) }, svg);
+      S("text", { "class":"val-label", x:Math.max(X(v), X(ref)) + 8, y:y + 4 + bh / 2 + 3.5 }, svg, fmt(op));
+      var hit = S("rect", { "class":"hit focusable", x:0, y:y, width:W, height:rowH, tabindex:0, role:"img", "aria-label":"Operator " + op.k + " " + f(v, 3) }, svg);
+      bindTip(hit, function(){ return { title:"Operator " + op.k, rows:[{ color:opVar(op.k), value:f(v, 3), label:(key === "tn" ? "time load TN_m" : "ERI load") + " (" + refLabel + " " + f(ref, 3) + ")" }, { value:f(ref - v, 3), label:key === "tn" ? "idle time" : "ERI headroom" }] }; });
+    });
+    S("line", { x1:X(ref), x2:X(ref), y1:mt - 8, y2:Ht - 4, stroke:"var(--text-primary)", "stroke-width":1.5 }, svg);
+    S("text", { "class":"val-label", x:X(ref), y:mt - 11, "text-anchor":"middle", "font-weight":600 }, svg, refLabel + " " + f(ref, 3));
+  }
+
+  function renderLayout(r){
+    var n = r.n, W = 1140, ml = 96, mr = 8, cw = (W - ml - mr) / n, rowH = 22, gap = 4, mt = 34;
+    var Ht = mt + r.ops.length * (rowH + gap) + 2;
+    var svg = mkSvg($("chartLayout"), W, Ht, "Tasks of each operator in line order");
+    S("text", { "class":"cat-sub", x:ml - 8, y:13, "text-anchor":"end" }, svg, "workstation");
+    wsBrackets(svg, r, ml, cw, -4);
+    r.ops.forEach(function(op, i){
+      var y = mt + i * (rowH + gap);
+      S("rect", { x:ml - 78, y:y + rowH / 2 - 5, width:10, height:10, rx:2, fill:opVar(op.k) }, svg);
+      S("text", { "class":"cat-label", x:ml - 62, y:y + rowH / 2 + 4 }, svg, "Operator " + op.k);
+      S("rect", { x:ml, y:y, width:cw * n, height:rowH, rx:3, fill:"var(--surface-2)" }, svg);
+      op.tasks.forEach(function(x){
+        var c = S("rect", { x:ml + (x.t - 1) * cw + 0.5, y:y, width:cw - 1, height:rowH, rx:1.5, fill:opVar(op.k), "class":"focusable" }, svg);
+        bindTip(c, function(){ return { title:"Task " + x.t, rows:[{ color:opVar(op.k), value:"Operator " + op.k, label:"workstation " + x.w }] }; });
+      });
+    });
+  }
+
+  function rangeText(ws){
+    var ids = ws.map(function(x){ return x.w; }), out = [], a = null, b = null;
+    ids.forEach(function(v){
+      if (a === null){ a = b = v; }
+      else if (v === b + 1){ b = v; }
+      else { out.push(a === b ? String(a) : a + "–" + b); a = b = v; }
+    });
+    if (a !== null) out.push(a === b ? String(a) : a + "–" + b);
+    return out.length ? "WS " + out.join(", ") : "—";
+  }
+
+  function renderOpTable(r){
+    var tb = $("opBody"); clear(tb);
+    r.ops.forEach(function(op){
+      var tr = H("tr", null, tb);
+      var td = H("td", null, tr); var dot = H("span", { "class":"opdot" }, td); dot.style.background = opVar(op.k); td.appendChild(document.createTextNode("Operator " + op.k));
+      H("td", null, tr, op.tasks.length ? rangeText(op.ws.slice().sort(function(a, b){ return a.w - b.w; })) : "(idle)");
+      H("td", { "class":"num" }, tr, String(op.tasks.length));
+      H("td", { "class":"num" }, tr, f(op.tn, 3));
+      H("td", { "class":"num" }, tr, f(op.idleT != null ? op.idleT : r.ct - op.tn, 3));
+      var um = H("td", { "class":"num" }, tr), mt = H("span", { "class":"meter" }, um), fill = H("span", null, mt);
+      fill.style.width = Math.min(100, op.util) + "%"; fill.style.background = opVar(op.k);
+      um.appendChild(document.createTextNode(f(op.util, 1) + "%"));
+      H("td", { "class":"num" }, tr, f(op.eri, 3));
+      H("td", { "class":"num" }, tr, f(op.idleE != null ? op.idleE : r.el - op.eri, 3));
+    });
+  }
+
+  // ---------- All-runs table ----------
+  var COLS = [
+    { k:"wt", lab:"w_t", r:true, get:function(r){ return r.wt; }, fmt:function(r){ return f(r.wt, 2); } },
+    { k:"we", lab:"w_e", r:true, get:function(r){ return r.we; }, fmt:function(r){ return f(r.we, 2); } },
+    { k:"inst", lab:"Instance", get:function(r){ return r.inst.idx; }, fmt:function(r){ return r.inst.label; } },
+    { k:"status", lab:"Status", get:function(r){ return r.optimal ? 0 : 1; }, fmt:null },
+    { k:"obj", lab:"z*", r:true, get:function(r){ return r.obj; }, fmt:function(r){ return f(r.obj, 3); } },
+    { k:"ct", lab:"CT", r:true, get:function(r){ return r.ct; }, fmt:function(r){ return f(r.ct, 3); } },
+    { k:"el", lab:"EL", r:true, get:function(r){ return r.el; }, fmt:function(r){ return f(r.el, 3); } },
+    { k:"le", lab:"Line eff. (%)", r:true, get:function(r){ return r.le; }, fmt:function(r){ return f(r.le, 2); } },
+    { k:"siT", lab:"SI time", r:true, get:function(r){ return r.siT; }, fmt:function(r){ return f(r.siT, 3); } },
+    { k:"siE", lab:"SI ERI", r:true, get:function(r){ return r.siE; }, fmt:function(r){ return f(r.siE, 3); } },
+    { k:"asg", lab:"Assignment", get:function(r){ return r.asg; }, fmt:function(r){ return r.asg; } }
+  ];
+  function renderRunTable(){
+    var hd = $("runHead"); clear(hd);
+    COLS.forEach(function(c){
+      var th = H("th", { "class":"sortable" + (c.r ? " r" : "") + (/^(wt|we|obj|ct|el|siT|siE)$/.test(c.k) ? " nocase" : "") + (state.sort.key === c.k ? " sorted" : ""), "data-arrow":state.sort.dir > 0 ? "▲" : "▼", tabindex:0, scope:"col" }, hd, c.lab);
+      var act = function(){ state.sort = { key:c.k, dir:state.sort.key === c.k ? -state.sort.dir : 1 }; renderRunTable(); };
+      th.addEventListener("click", act);
+      th.addEventListener("keydown", function(e){ if (e.key === "Enter") act(); });
+    });
+    var col = COLS.filter(function(c){ return c.k === state.sort.key; })[0];
+    var rows = state.runs.slice();
+    if (col){
+      rows.sort(function(a, b){
+        var x = col.get(a), y = col.get(b), d = (typeof x === "number" && typeof y === "number") ? x - y : String(x).localeCompare(String(y));
+        return (d || a.order - b.order) * state.sort.dir;
+      });
+    } else rows.sort(function(a, b){ return a.order - b.order; });
+    var tb = $("runBody"); clear(tb);
+    rows.forEach(function(r){
+      var tr = H("tr", { "class":"clickrow" + (r.name === state.sel ? " sel" : ""), tabindex:0 }, tb);
+      COLS.forEach(function(c){
+        var td = H("td", { "class":c.r ? "num" : "" }, tr);
+        if (c.k === "status") H("span", { "class":"badge " + (r.optimal ? "ok" : "bad") }, td, (r.optimal ? "✓ Optimal" : "⚠ Not proven") + (r.cplexStatus != null ? " · " + r.cplexStatus : ""));
+        else td.textContent = c.fmt(r);
+      });
+      tr.addEventListener("click", function(){ select(r.name); document.getElementById("explorer").scrollIntoView({ block:"start" }); });
+      tr.addEventListener("keydown", function(e){ if (e.key === "Enter"){ select(r.name); document.getElementById("explorer").scrollIntoView({ block:"start" }); } });
+    });
+  }
+
+  function renderAll(){
+    renderKpis(); renderBand(); renderHeat(); renderScatter(); renderUtil(); renderMap(); renderExplorer(); renderRunTable();
+  }
+
+  // ---------- Wiring ----------
+  $("fileInput").addEventListener("change", function(e){
+    var file = e.target.files && e.target.files[0]; if (!file) return;
+    var rd = new FileReader();
+    rd.onload = function(){ load(String(rd.result), file.name); };
+    rd.onerror = function(){ showError("Could not read the file."); };
+    rd.readAsText(file);
+    e.target.value = "";
+  });
+  $("resetSample").addEventListener("click", function(){ load(SAMPLE_TEXT, "Example output"); });
+  if (window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var rerender = function(){ if (state.runs.length) renderAll(); };
+    if (mq.addEventListener) mq.addEventListener("change", rerender); else if (mq.addListener) mq.addListener(rerender);
+  }
+  window.addEventListener("scroll", tipHide, { passive:true });
+
+  load(SAMPLE_TEXT, "Example output");
+  window.__ergoState = state; window.__ergoParse = parseText;
+})();
+</script>
+</body>
+</html>

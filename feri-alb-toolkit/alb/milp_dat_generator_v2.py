@@ -27,7 +27,7 @@ FERI_FILE  = _HERE.parent / "feri" / "FERI_results.xlsx"
 DAT_FILE   = _HERE / "assembly_line.dat"
 PREC_PNG   = _HERE / "precedence_diagram.png"
 
-N_STATIONS    = 10      # upper bound on number of operator stations K
+N_STATIONS    = 6       # upper bound on number of operator stations K (m = 6 in the paper)
 CYCLE_TIME_UB = 120.0  # takt time in seconds (max allowed CT)
 ERGO_LIMIT    = 30.0   # max ergonomic load (ERI × s) per station
 W_TIME        = 0.5    # default objective weight for cycle time (0 = ergonomics-only, 1 = time-only)
@@ -161,7 +161,13 @@ def write_dat(df, pr, out_path: str, time_vals=None, eri_vals=None, label="",
 
     n = len(df)
     K = N_STATIONS
-    n_workstations = int(df["station"].max())
+    # Physical workstations are re-indexed 1..p in ascending order of their original
+    # label. Constraint C7 (lastOp[w] <= firstOp[w+1]) is written over the index w, so
+    # with raw labels (1, 10, 50, ...) the empty indices in between would break the
+    # chain and only numerically consecutive labels would be sequenced.
+    ws_labels = sorted(int(x) for x in df["station"].unique())
+    ws_idx = {lab: i + 1 for i, lab in enumerate(ws_labels)}
+    n_workstations = len(ws_labels)
 
     # Station description comments
     station_groups = df.groupby("station")["task_id"].apply(list).to_dict()
@@ -231,16 +237,17 @@ def write_dat(df, pr, out_path: str, time_vals=None, eri_vals=None, label="",
 
     # ── taskWorkstation  (physical workstation per task, from Excel "Station" column)
     lines.append("// Physical workstation assignment per task")
-    lines.append("// (read from 'Station' column of FERI_results.xlsx)")
+    lines.append("// (from the 'Station' column of FERI_results.xlsx, re-indexed 1..p in ascending label order)")
     for ws_id, task_ids in sorted(station_groups.items()):
         idx_list = [str(id_to_idx[tid]) for tid in task_ids]
-        lines.append(f"// Workstation {ws_id}: Tasks {', '.join(idx_list)}")
+        lines.append(f"// Workstation {ws_idx[int(ws_id)]} (original label {int(ws_id)}): "
+                     f"Tasks {', '.join(idx_list)}")
     lines.append("taskWorkstation = [")
     for i, row in df.iterrows():
         idx      = i + 1
         is_last  = (idx == n)
         comma    = "" if is_last else ","
-        ws_str   = f"{int(row['station'])}{comma}"
+        ws_str   = f"{ws_idx[int(row['station'])]}{comma}"
         comment  = f"// Task {idx:<{max_id_digits}} - {row['task_name']}"
         lines.append(f"    {ws_str:<5}  {comment}")
     lines.append("];")
@@ -507,7 +514,7 @@ if __name__ == "__main__":
     print("Loading FERI results …")
     df, pr = load_data(FERI_FILE)
     print(f"  {len(df)} tasks  |  {len(pr)} precedence pairs  |  "
-          f"{df['station'].max()} workstations")
+          f"{df['station'].nunique()} workstations")
 
     print("Validating precedence graph …")
     G = validate_dag(df, pr)
